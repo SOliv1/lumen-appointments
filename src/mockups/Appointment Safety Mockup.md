@@ -215,6 +215,23 @@ Deleting should not be the only destructive action. Offer safer recovery choices
 | Confirmed | Calm success | No action needed |
 | Change in progress | Focused update mode | Save change or cancel |
 
+## Day / Night Comfort Mode
+
+The workspace should support staff working across day shifts, late shifts and night shifts.
+
+Day mode:
+
+- warm off-white surfaces rather than stark white
+- clear contrast without clinical harshness
+- soft seasonal accent colours for status and action
+
+Night mode:
+
+- dimmed background and panels
+- lower contrast glare while preserving readable text
+- amber/green/blue status colours tuned for low-light environments
+- same layout and controls so staff do not have to relearn the interface
+
 ## Implementation Notes
 
 This can be built incrementally:

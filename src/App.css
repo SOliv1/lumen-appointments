@@ -1,18 +1,19 @@
 :root {
   --ink: #273033;
   --muted: #68736f;
-  --surface: rgba(255, 255, 255, 0.88);
-  --surface-strong: #ffffff;
-  --line: #eadfd9;
-  --page: #f8f4f1;
-  --mist: #eef5ef;
+  --surface: rgba(250, 246, 240, 0.9);
+  --surface-strong: #fbf7f0;
+  --field: #fdf9f3;
+  --line: #e4d7cf;
+  --page: #f2ede7;
+  --mist: #e9f0e8;
   --lavender: #9f92cf;
   --rose: #c78390;
   --gold: #c8a25d;
   --green: #7ea889;
   --teal: #4e93a0;
   --plum: #544765;
-  --shadow: rgba(96, 72, 62, 0.12);
+  --shadow: rgba(83, 64, 57, 0.08);
 }
 
 * {
@@ -22,7 +23,7 @@
 body {
   margin: 0;
   background:
-    linear-gradient(180deg, #fbf8f5 0%, var(--page) 42%, #eef5ef 100%);
+    linear-gradient(180deg, #f7f1ea 0%, var(--page) 48%, #e8eee7 100%);
   color: var(--ink);
   font-family: Inter, "Segoe UI", Arial, sans-serif;
 }
@@ -94,7 +95,7 @@ textarea {
   gap: 8px;
   align-items: center;
   padding: 14px clamp(16px, 5vw, 64px);
-  background: rgba(255, 251, 246, 0.92);
+  background: rgba(248, 242, 235, 0.94);
   border-bottom: 1px solid var(--line);
   overflow-x: auto;
   backdrop-filter: blur(16px);
@@ -178,8 +179,8 @@ textarea {
   min-height: 44px;
   padding: 10px 12px;
   color: var(--ink);
-  background: rgba(255, 253, 249, 0.92);
-  border: 1px solid #dfd3cd;
+  background: var(--field);
+  border: 1px solid #d9ccc4;
   border-radius: 6px;
   outline: none;
 }
@@ -240,7 +241,7 @@ textarea:focus {
   display: grid;
   gap: 5px;
   padding: 14px;
-  background: rgba(255, 253, 249, 0.86);
+  background: var(--surface-strong);
   border: 1px solid var(--line);
   border-radius: 8px;
 }
@@ -257,9 +258,9 @@ textarea:focus {
 .action-button {
   min-height: 34px;
   padding: 7px 11px;
-  border: 1px solid #dfd3cd;
+  border: 1px solid #d9ccc4;
   border-radius: 6px;
-  background: #fff9f3;
+  background: #fdf7ef;
   color: var(--plum);
   font-weight: 800;
   cursor: pointer;
