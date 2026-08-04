@@ -47,14 +47,47 @@
 +----------------------------+
 
 ## Appointments Page
-+----------------------------+  +--------------------------+
-| Book / Update Appointment  |  | Appointment Schedule     |
-+----------------------------+  +--------------------------+
-| [Patient dropdown]         |  | Olivia Bennett           |
-| [Clinician dropdown]       |  | Dr. Alice Morton         |
-| [Date picker]              |  | 2026-08-05 at 09:00      |
-| [Time dropdown]            |  | Medication review        |
-| [Reason textarea]          |  | [Update] [Delete]        |
-| [Book/Save Appointment]    |  |                          |
-| [Cancel] when updating     |  +--------------------------+
-+----------------------------+
++----------------------------+  +----------------------------+
+| Book / Update Appointment  |  | Appointment Safety Panel   |
++----------------------------+  +----------------------------+
+| [Patient dropdown]         |  | Readiness checklist        |
+| [Clinician dropdown]       |  | [ok] Patient contact       |
+| [Date picker]              |  | [ok] Clinician available   |
+| [Time dropdown]            |  | [!] Notice period          |
+| [Reason textarea]          |  | [ok] No double-booking     |
+| [Book/Save Appointment]    |  | [ok] Reason recorded       |
+| [Cancel] when updating     |  |                            |
++----------------------------+  | Notice status              |
+                                | Short notice warning       |
+                                | Suggested later dates      |
+                                |                            |
+                                | Communication status       |
+                                | [Not notified]             |
+                                | [Queued] [Sent] [Confirmed]|
+                                +----------------------------+
+
++----------------------------+  +----------------------------+
+| Appointment Schedule       |  | Short Notice List          |
++----------------------------+  +----------------------------+
+| Olivia Bennett             |  | Patients able to attend    |
+| Dr. Alice Morton           |  | quickly if a slot opens    |
+| 2026-08-05 at 09:00        |  |                            |
+| Medication review          |  | Marcus Hill                |
+| Status: Patient notified   |  | Sophia Lane                |
+| [Update] [Delete]          |  | Daniel Morris              |
+| [Reschedule] [Release slot]|  | [Offer released slot]      |
++----------------------------+  +----------------------------+
+
+## Appointment Change / Recovery State
++----------------------------------------------------------+
+| Appointment change reason                                |
++----------------------------------------------------------+
+| [Patient requested change dropdown]                      |
+| [Clinician unavailable dropdown]                         |
+| [Admin correction dropdown]                              |
+| [Urgent clinical change dropdown]                        |
+| [Other + note textarea]                                  |
+|                                                          |
+| Calm recovery actions:                                   |
+| [Cancel and release slot] [Reschedule] [Keep + add note] |
++----------------------------------------------------------+
