@@ -242,7 +242,7 @@ function CliniciansPage({ clinicians, setClinicians }) {
               {clinician.registrationId && <small>Registration {clinician.registrationId}</small>}
               <div className="record-actions">
                 <button type="button" className="action-button" onClick={() => editClinician(clinician)}>
-                  Edit
+                  Update
                 </button>
                 <button type="button" className="action-button danger" onClick={() => deleteClinician(clinician.id)}>
                   Delete
@@ -422,7 +422,7 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
               <small>{appointment.reason}</small>
               <div className="record-actions">
                 <button type="button" className="action-button" onClick={() => editAppointment(appointment)}>
-                  Edit
+                  Update
                 </button>
                 <button type="button" className="action-button danger" onClick={() => deleteAppointment(appointment.id)}>
                   Delete
