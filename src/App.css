@@ -163,6 +163,14 @@ h1 {
   gap: 12px;
 }
 
+.form-actions,
+.record-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
 .split-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -224,6 +232,11 @@ textarea:focus {
   background: var(--green);
 }
 
+.btn-quiet {
+  background: #efe5df;
+  color: var(--plum);
+}
+
 .record-list {
   display: grid;
   gap: 12px;
@@ -245,6 +258,29 @@ textarea:focus {
 .record-card span,
 .record-card small {
   color: var(--muted);
+}
+
+.action-button {
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 1px solid #dfd3cd;
+  border-radius: 6px;
+  background: #fff9f3;
+  color: var(--plum);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.action-button:hover {
+  background: #f0e5df;
+}
+
+.action-button.danger {
+  color: #9a5b59;
+}
+
+.action-button.danger:hover {
+  background: #f5e3df;
 }
 
 .status {

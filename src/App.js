@@ -144,6 +144,7 @@ function CliniciansPage({ clinicians, setClinicians }) {
     contact: "",
     registrationId: "",
   });
+  const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState("");
 
   const updateForm = (event) => {
@@ -156,20 +157,56 @@ function CliniciansPage({ clinicians, setClinicians }) {
     return /^\d{7}$/.test(id) || /^[A-Za-z]{2}\d{6}$/.test(id) || /^[A-Za-z]{2}\d{5}$/.test(id);
   };
 
-  const addClinician = (event) => {
+  const resetClinicianForm = () => {
+    setForm({ name: "", role: "", specialty: "", contact: "", registrationId: "" });
+    setEditingId(null);
+    setError("");
+  };
+
+  const saveClinician = (event) => {
     event.preventDefault();
     if (!isValidRegistration(form.registrationId)) {
       setError("Use GMC 7 digits, NMC AA######, or HCPC AA#####.");
       return;
     }
-    setClinicians([...clinicians, { ...form, id: makeId("clinician") }]);
-    setForm({ name: "", role: "", specialty: "", contact: "", registrationId: "" });
+    if (editingId) {
+      setClinicians(
+        clinicians.map((clinician) =>
+          clinician.id === editingId ? { ...form, id: editingId } : clinician
+        )
+      );
+    } else {
+      setClinicians([...clinicians, { ...form, id: makeId("clinician") }]);
+    }
+    resetClinicianForm();
+  };
+
+  const editClinician = (clinician) => {
+    setForm({
+      name: clinician.name,
+      role: clinician.role,
+      specialty: clinician.specialty,
+      contact: clinician.contact,
+      registrationId: clinician.registrationId || "",
+    });
+    setEditingId(clinician.id);
+    setError("");
+  };
+
+  const deleteClinician = (id) => {
+    setClinicians(clinicians.filter((clinician) => clinician.id !== id));
+    if (editingId === id) {
+      resetClinicianForm();
+    }
   };
 
   return (
     <section className="page-grid">
-      <Panel title="Add Clinician" subtitle="Build the rota with verified clinical staff.">
-        <form onSubmit={addClinician} className="form-grid">
+      <Panel
+        title={editingId ? "Update Clinician" : "Add Clinician"}
+        subtitle="Build the rota with verified clinical staff."
+      >
+        <form onSubmit={saveClinician} className="form-grid">
           <input name="name" value={form.name} onChange={updateForm} placeholder="Clinician name" required />
           <input name="role" value={form.role} onChange={updateForm} placeholder="Role" required />
           <input name="specialty" value={form.specialty} onChange={updateForm} placeholder="Specialty" required />
@@ -181,7 +218,16 @@ function CliniciansPage({ clinicians, setClinicians }) {
             placeholder="GMC / NMC / HCPC"
           />
           {error && <p className="error-box">{error}</p>}
-          <button type="submit" className="btn btn-clinician">Add Clinician</button>
+          <div className="form-actions">
+            <button type="submit" className="btn btn-clinician">
+              {editingId ? "Save Clinician" : "Add Clinician"}
+            </button>
+            {editingId && (
+              <button type="button" className="btn btn-quiet" onClick={resetClinicianForm}>
+                Cancel
+              </button>
+            )}
+          </div>
         </form>
       </Panel>
 
@@ -194,6 +240,14 @@ function CliniciansPage({ clinicians, setClinicians }) {
               <span>{clinician.role} - {clinician.specialty}</span>
               <span>{clinician.contact}</span>
               {clinician.registrationId && <small>Registration {clinician.registrationId}</small>}
+              <div className="record-actions">
+                <button type="button" className="action-button" onClick={() => editClinician(clinician)}>
+                  Edit
+                </button>
+                <button type="button" className="action-button danger" onClick={() => deleteClinician(clinician.id)}>
+                  Delete
+                </button>
+              </div>
             </>
           )}
         />
@@ -271,21 +325,62 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
     time: "",
     reason: "",
   });
+  const [editingId, setEditingId] = useState(null);
 
   const updateForm = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
   };
 
-  const addAppointment = (event) => {
+  const resetAppointmentForm = () => {
+    setForm({
+      patientId: patients[0]?.id || "",
+      clinicianId: clinicians[0]?.id || "",
+      date: "",
+      time: "",
+      reason: "",
+    });
+    setEditingId(null);
+  };
+
+  const saveAppointment = (event) => {
     event.preventDefault();
-    setAppointments([...appointments, { ...form, id: makeId("appt") }]);
-    setForm({ ...form, date: "", time: "", reason: "" });
+    if (editingId) {
+      setAppointments(
+        appointments.map((appointment) =>
+          appointment.id === editingId ? { ...form, id: editingId } : appointment
+        )
+      );
+    } else {
+      setAppointments([...appointments, { ...form, id: makeId("appt") }]);
+    }
+    resetAppointmentForm();
+  };
+
+  const editAppointment = (appointment) => {
+    setForm({
+      patientId: appointment.patientId,
+      clinicianId: appointment.clinicianId,
+      date: appointment.date,
+      time: appointment.time,
+      reason: appointment.reason,
+    });
+    setEditingId(appointment.id);
+  };
+
+  const deleteAppointment = (id) => {
+    setAppointments(appointments.filter((appointment) => appointment.id !== id));
+    if (editingId === id) {
+      resetAppointmentForm();
+    }
   };
 
   return (
     <section className="page-grid">
-      <Panel title="Book Appointment" subtitle="Match a patient with the right clinician and time.">
-        <form onSubmit={addAppointment} className="form-grid">
+      <Panel
+        title={editingId ? "Update Appointment" : "Book Appointment"}
+        subtitle="Match a patient with the right clinician and time."
+      >
+        <form onSubmit={saveAppointment} className="form-grid">
           <select name="patientId" value={form.patientId} onChange={updateForm} required>
             {patients.map((patient) => (
               <option key={patient.id} value={patient.id}>{patient.name}</option>
@@ -303,7 +398,16 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
             <input name="time" type="time" value={form.time} onChange={updateForm} required />
           </div>
           <textarea name="reason" value={form.reason} onChange={updateForm} placeholder="Reason for appointment" rows="4" />
-          <button type="submit" className="btn btn-appointment">Book Appointment</button>
+          <div className="form-actions">
+            <button type="submit" className="btn btn-appointment">
+              {editingId ? "Save Appointment" : "Book Appointment"}
+            </button>
+            {editingId && (
+              <button type="button" className="btn btn-quiet" onClick={resetAppointmentForm}>
+                Cancel
+              </button>
+            )}
+          </div>
         </form>
       </Panel>
 
@@ -316,6 +420,14 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
               <span>{clinicianLookup[appointment.clinicianId]?.name || appointment.clinicianId}</span>
               <span>{appointment.date} at {appointment.time}</span>
               <small>{appointment.reason}</small>
+              <div className="record-actions">
+                <button type="button" className="action-button" onClick={() => editAppointment(appointment)}>
+                  Edit
+                </button>
+                <button type="button" className="action-button danger" onClick={() => deleteAppointment(appointment.id)}>
+                  Delete
+                </button>
+              </div>
             </>
           )}
         />
