@@ -69,7 +69,7 @@ textarea {
 .hero-content {
   position: relative;
   z-index: 1;
-  max-width: 720px;
+  max-width: 760px;
   text-shadow: 0 2px 18px rgba(28, 22, 24, 0.28);
 }
 
@@ -83,13 +83,33 @@ textarea {
 
 h1 {
   margin: 0;
-  font-size: clamp(2.2rem, 5vw, 4.75rem);
+  font-size: clamp(2.35rem, 5vw, 4.65rem);
   line-height: 0.98;
+}
+
+.brand-lockup {
+  display: inline-grid;
+  gap: 12px;
+}
+
+.brand-lockup h1 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.22em;
+  align-items: baseline;
+}
+
+.sync-line {
+  display: block;
+  width: min(100%, 640px);
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(244, 216, 191, 0.95), rgba(126, 168, 137, 0.9), rgba(78, 147, 160, 0));
 }
 
 .hero p:last-child {
   max-width: 620px;
-  margin: 16px 0 0;
+  margin: 18px 0 0;
   color: #fff7ee;
   font-size: 1.06rem;
   line-height: 1.55;

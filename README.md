@@ -1,6 +1,6 @@
-# serene-care-sync
+# SereneCare Sync
 
-Care coordination workspace for managing patients, clinicians, availability and appointments.
+A calm, structured care-coordination workspace where staff, patients, clinicians and schedules stay synced.
 
 ## Local Development
 

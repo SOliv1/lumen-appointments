@@ -3,7 +3,7 @@
 ## Shared Layout
 +----------------------------------------------------------+
 | Seasonal care studio                                     |
-| serene-care-sync                                         |
+| SereneCare Sync                                          |
 | Calm seasonal workspace hero                             |
 +----------------------------------------------------------+
 | Patients | Clinicians | Availability | Appointments      |

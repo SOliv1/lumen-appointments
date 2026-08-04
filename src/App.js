@@ -74,7 +74,13 @@ function App() {
         <img src="/serenecare-banner.png" alt="" className="hero-image" />
         <div className="hero-content">
           <p className="eyebrow">Seasonal care studio</p>
-          <h1>serene-care-sync</h1>
+          <div className="brand-lockup">
+            <h1>
+              <span>SereneCare</span>
+              <span>Sync</span>
+            </h1>
+            <span className="sync-line" aria-hidden="true" />
+          </div>
           <p>
             Coordinate patients, clinicians, availability and bookings inside a calm,
             seasonal workspace.
