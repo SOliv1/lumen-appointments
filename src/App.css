@@ -84,12 +84,12 @@ textarea {
 h1 {
   margin: 0;
   font-size: clamp(2.35rem, 5vw, 4.65rem);
-  line-height: 0.98;
+  line-height: 1.06;
 }
 
 .brand-lockup {
   display: inline-grid;
-  gap: 12px;
+  gap: 0;
 }
 
 .brand-lockup h1 {
@@ -101,8 +101,9 @@ h1 {
 
 .sync-line {
   display: block;
-  width: min(100%, 640px);
-  height: 3px;
+  width: min(94%, 590px);
+  height: 2px;
+  margin-top: 14px;
   border-radius: 999px;
   background: linear-gradient(90deg, rgba(244, 216, 191, 0.95), rgba(126, 168, 137, 0.9), rgba(78, 147, 160, 0));
 }
