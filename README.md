@@ -30,4 +30,10 @@ npm start
 
 ## Render
 
-Use `npm run build` as the build command and `npm start` as the start command.
+Recommended static site settings:
+
+- Build command: `npm ci && npm run build`
+- Publish directory: `build`
+- Rewrite rule: `/*` to `/index.html`
+
+The included `render.yaml` records the same static site setup for future Render blueprints.
