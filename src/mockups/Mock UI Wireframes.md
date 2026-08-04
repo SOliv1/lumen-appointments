@@ -14,7 +14,7 @@
 | Register / Update Patient  |  | Patient List             |
 +----------------------------+  +--------------------------+
 | [Full name input]          |  | Olivia Bennett           |
-| [DOB picker]               |  | DOB 1984-03-12           |
+| [DOB picker]               |  | DOB 12/03/1984           |
 | [Contact input]            |  | 07792 441223             |
 | [Care notes textarea]      |  | Asthma, seasonal triggers|
 | [Add/Save Patient] [Cancel]|  | [Update] [Delete]        |
@@ -38,7 +38,7 @@
 | Open / Update Availability |  | Availability Board       |
 +----------------------------+  +--------------------------+
 | [Clinician dropdown]       |  | Dr. Alice Morton         |
-| [Date picker]              |  | 2026-08-05               |
+| [Date picker]              |  | 05/08/2026               |
 | [Start time dropdown]      |  | 09:00 - 09:30            |
 | [End time dropdown]        |  | Status: Available       |
 | [Status dropdown]          |  | [Update] [Delete]        |
@@ -71,7 +71,7 @@
 +----------------------------+  +----------------------------+
 | Olivia Bennett             |  | Patients able to attend    |
 | Dr. Alice Morton           |  | quickly if a slot opens    |
-| 2026-08-05 at 09:00        |  |                            |
+| 05/08/2026 at 09:00        |  |                            |
 | Medication review          |  | Marcus Hill                |
 | Status: Patient notified   |  | Sophia Lane                |
 | [Update] [Delete]          |  | Daniel Morris              |

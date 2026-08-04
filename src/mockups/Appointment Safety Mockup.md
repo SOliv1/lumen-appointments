@@ -12,6 +12,12 @@ The appointment flow should feel like a calm care OS:
 - forgiving enough to prevent common appointment mistakes
 - clear enough that a new staff member can follow it without training anxiety
 
+## Date Format
+
+Use UK date presentation for staff-facing screens: `dd/mm/yyyy`.
+
+Store dates internally as ISO `yyyy-mm-dd` for backend/API reliability, then format them for display in the UI.
+
 ## Appointment Page Mockup
 
 ```text
@@ -23,7 +29,7 @@ The appointment flow should feel like a calm care OS:
 | Clinician                  |  | [ok] Clinician available   |
 | [Dr. Alice Morton v]       |  | [ok] No patient conflict   |
 | Date                       |  | [ok] No clinician conflict |
-| [2026-08-26]               |  | [!] Notice: under 3 weeks  |
+| [26/08/2026]               |  | [!] Notice: under 3 weeks  |
 | Time                       |  | [ok] Reason recorded       |
 | [09:00 v]                  |  |                            |
 | Reason                     |  | Suggested action           |
@@ -38,7 +44,7 @@ The appointment flow should feel like a calm care OS:
 +----------------------------+  +----------------------------+
 | Status                     |  | Olivia Bennett             |
 | [Not notified v]           |  | Dr. Alice Morton           |
-| Initial notice             |  | 2026-08-26 at 09:00        |
+| Initial notice             |  | 26/08/2026 at 09:00        |
 | [Send today]               |  | Medication review          |
 | Reminder plan              |  | Patient notified           |
 | [7 days before]            |  | [Update] [Delete]          |
@@ -74,9 +80,9 @@ If the date is less than the required notice threshold, the form should not pani
 | Choose a later date or record why this is safe. |
 |                                                |
 | [Suggested later slots]                         |
-| 2026-08-27 09:30                                |
-| 2026-08-27 10:00                                |
-| 2026-08-28 11:30                                |
+| 27/08/2026 09:30                                |
+| 27/08/2026 10:00                                |
+| 28/08/2026 11:30                                |
 |                                                |
 | Reason for short notice                         |
 | [Urgent clinical need v]                        |
@@ -141,10 +147,10 @@ The appointment card should show the current status in plain language:
 ```text
 Olivia Bennett
 Dr. Alice Morton
-2026-08-26 at 09:00
+26/08/2026 at 09:00
 Medication review
 Communication: Patient notified
-Next reminder: 2026-08-19
+Next reminder: 19/08/2026
 [Update] [Delete] [Reschedule]
 ```
 
@@ -175,7 +181,7 @@ When a slot is cancelled or released, offer it to patients who can attend quickl
 | Released slot                                 |
 +----------------------------------------------+
 | Dr. Alice Morton                              |
-| 2026-08-26 at 09:00                           |
+| 26/08/2026 at 09:00                           |
 |                                              |
 | Short notice list                             |
 | Marcus Hill - prefers mornings                |

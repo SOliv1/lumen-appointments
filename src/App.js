@@ -44,6 +44,15 @@ const getLaterTimeOptions = (time) => {
   return TIME_OPTIONS.slice(timeIndex + 1);
 };
 
+const formatUkDate = (isoDate) => {
+  if (!isoDate) {
+    return "Date not set";
+  }
+
+  const [year, month, day] = isoDate.split("-");
+  return year && month && day ? `${day}/${month}/${year}` : isoDate;
+};
+
 function App() {
   const [patients, setPatients] = useState(initialPatients);
   const [clinicians, setClinicians] = useState(initialClinicians);
@@ -197,7 +206,7 @@ function PatientsPage({ patients, setPatients }) {
           renderItem={(patient) => (
             <>
               <strong>{patient.name}</strong>
-              <span>DOB {patient.dob}</span>
+              <span>DOB {formatUkDate(patient.dob)}</span>
               <span>{patient.contact}</span>
               {patient.notes && <small>{patient.notes}</small>}
               <div className="record-actions">
@@ -462,7 +471,7 @@ function AvailabilityPage({ availability, setAvailability, clinicians, clinician
           renderItem={(slot) => (
             <>
               <strong>{clinicianLookup[slot.clinicianId]?.name || slot.clinicianId}</strong>
-              <span>{slot.date}</span>
+              <span>{formatUkDate(slot.date)}</span>
               <span>{slot.time || `${slot.startTime} - ${slot.endTime}`}</span>
               <small className={`status status-${slot.status.toLowerCase()}`}>{slot.status}</small>
               <div className="record-actions">
@@ -588,7 +597,7 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
             <>
               <strong>{patientLookup[appointment.patientId]?.name || appointment.patientId}</strong>
               <span>{clinicianLookup[appointment.clinicianId]?.name || appointment.clinicianId}</span>
-              <span>{appointment.date} at {appointment.time}</span>
+              <span>{formatUkDate(appointment.date)} at {appointment.time}</span>
               <small>{appointment.reason}</small>
               <div className="record-actions">
                 <button type="button" className="action-button" onClick={() => editAppointment(appointment)}>
