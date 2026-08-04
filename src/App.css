@@ -89,7 +89,6 @@ h1 {
 
 .brand-lockup {
   display: inline-grid;
-  gap: 0;
 }
 
 .brand-lockup h1 {
@@ -99,18 +98,9 @@ h1 {
   align-items: baseline;
 }
 
-.sync-line {
-  display: block;
-  width: min(94%, 590px);
-  height: 2px;
-  margin-top: 14px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, rgba(244, 216, 191, 0.95), rgba(126, 168, 137, 0.9), rgba(78, 147, 160, 0));
-}
-
 .hero p:last-child {
   max-width: 620px;
-  margin: 18px 0 0;
+  margin: 20px 0 0;
   color: #fff7ee;
   font-size: 1.06rem;
   line-height: 1.55;

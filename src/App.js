@@ -79,7 +79,6 @@ function App() {
               <span>SereneCare</span>
               <span>Sync</span>
             </h1>
-            <span className="sync-line" aria-hidden="true" />
           </div>
           <p>
             Coordinate patients, clinicians, availability and bookings inside a calm,
