@@ -36,7 +36,7 @@ function App() {
         <img src="/serenecare-banner.png" alt="" className="hero-image" />
         <div className="hero-content">
           <p className="eyebrow">Care coordination workspace</p>
-          <h1>Serene Care Sync</h1>
+          <h1>serene-care-sync</h1>
           <p>
             Coordinate patients, clinicians, availability and bookings from one calm,
             operational view.
