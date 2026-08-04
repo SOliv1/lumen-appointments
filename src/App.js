@@ -96,26 +96,69 @@ function App() {
 
 function PatientsPage({ patients, setPatients }) {
   const [form, setForm] = useState({ name: "", dob: "", contact: "", notes: "" });
+  const [editingId, setEditingId] = useState(null);
 
   const updateForm = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
   };
 
-  const addPatient = (event) => {
-    event.preventDefault();
-    setPatients([...patients, { ...form, id: makeId("patient") }]);
+  const resetPatientForm = () => {
     setForm({ name: "", dob: "", contact: "", notes: "" });
+    setEditingId(null);
+  };
+
+  const savePatient = (event) => {
+    event.preventDefault();
+    if (editingId) {
+      setPatients(
+        patients.map((patient) =>
+          patient.id === editingId ? { ...form, id: editingId } : patient
+        )
+      );
+    } else {
+      setPatients([...patients, { ...form, id: makeId("patient") }]);
+    }
+    resetPatientForm();
+  };
+
+  const updatePatient = (patient) => {
+    setForm({
+      name: patient.name,
+      dob: patient.dob,
+      contact: patient.contact,
+      notes: patient.notes || "",
+    });
+    setEditingId(patient.id);
+  };
+
+  const deletePatient = (id) => {
+    setPatients(patients.filter((patient) => patient.id !== id));
+    if (editingId === id) {
+      resetPatientForm();
+    }
   };
 
   return (
     <section className="page-grid">
-      <Panel title="Register Patient" subtitle="Capture the minimum details needed for scheduling.">
-        <form onSubmit={addPatient} className="form-grid">
+      <Panel
+        title={editingId ? "Update Patient" : "Register Patient"}
+        subtitle="Capture the minimum details needed for scheduling."
+      >
+        <form onSubmit={savePatient} className="form-grid">
           <input name="name" value={form.name} onChange={updateForm} placeholder="Full name" required />
           <input name="dob" type="date" value={form.dob} onChange={updateForm} required />
           <input name="contact" value={form.contact} onChange={updateForm} placeholder="Contact number" required />
           <textarea name="notes" value={form.notes} onChange={updateForm} placeholder="Care notes" rows="4" />
-          <button type="submit" className="btn btn-patient">Add Patient</button>
+          <div className="form-actions">
+            <button type="submit" className="btn btn-patient">
+              {editingId ? "Save Patient" : "Add Patient"}
+            </button>
+            {editingId && (
+              <button type="button" className="btn btn-quiet" onClick={resetPatientForm}>
+                Cancel
+              </button>
+            )}
+          </div>
         </form>
       </Panel>
 
@@ -128,6 +171,14 @@ function PatientsPage({ patients, setPatients }) {
               <span>DOB {patient.dob}</span>
               <span>{patient.contact}</span>
               {patient.notes && <small>{patient.notes}</small>}
+              <div className="record-actions">
+                <button type="button" className="action-button" onClick={() => updatePatient(patient)}>
+                  Update
+                </button>
+                <button type="button" className="action-button danger" onClick={() => deletePatient(patient.id)}>
+                  Delete
+                </button>
+              </div>
             </>
           )}
         />
@@ -264,21 +315,64 @@ function AvailabilityPage({ availability, setAvailability, clinicians, clinician
     endTime: "",
     status: "Available",
   });
+  const [editingId, setEditingId] = useState(null);
 
   const updateForm = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
   };
 
-  const addSlot = (event) => {
+  const resetAvailabilityForm = () => {
+    setForm({
+      clinicianId: clinicians[0]?.id || "",
+      date: "",
+      startTime: "",
+      endTime: "",
+      status: "Available",
+    });
+    setEditingId(null);
+  };
+
+  const saveSlot = (event) => {
     event.preventDefault();
-    setAvailability([...availability, { ...form, id: makeId("slot") }]);
-    setForm({ ...form, date: "", startTime: "", endTime: "", status: "Available" });
+    if (editingId) {
+      setAvailability(
+        availability.map((slot) =>
+          slot.id === editingId ? { ...form, id: editingId } : slot
+        )
+      );
+    } else {
+      setAvailability([...availability, { ...form, id: makeId("slot") }]);
+    }
+    resetAvailabilityForm();
+  };
+
+  const updateSlot = (slot) => {
+    const [startTime = "", endTime = ""] = slot.time ? slot.time.split("-") : [];
+
+    setForm({
+      clinicianId: slot.clinicianId,
+      date: slot.date,
+      startTime: slot.startTime || startTime,
+      endTime: slot.endTime || endTime,
+      status: slot.status || "Available",
+    });
+    setEditingId(slot.id);
+  };
+
+  const deleteSlot = (id) => {
+    setAvailability(availability.filter((slot) => slot.id !== id));
+    if (editingId === id) {
+      resetAvailabilityForm();
+    }
   };
 
   return (
     <section className="page-grid">
-      <Panel title="Open Availability" subtitle="Publish clinician slots for booking.">
-        <form onSubmit={addSlot} className="form-grid">
+      <Panel
+        title={editingId ? "Update Availability" : "Open Availability"}
+        subtitle="Publish clinician slots for booking."
+      >
+        <form onSubmit={saveSlot} className="form-grid">
           <select name="clinicianId" value={form.clinicianId} onChange={updateForm} required>
             {clinicians.map((clinician) => (
               <option key={clinician.id} value={clinician.id}>
@@ -296,7 +390,16 @@ function AvailabilityPage({ availability, setAvailability, clinicians, clinician
             <option>Booked</option>
             <option>Unavailable</option>
           </select>
-          <button type="submit" className="btn btn-availability">Add Availability</button>
+          <div className="form-actions">
+            <button type="submit" className="btn btn-availability">
+              {editingId ? "Save Availability" : "Add Availability"}
+            </button>
+            {editingId && (
+              <button type="button" className="btn btn-quiet" onClick={resetAvailabilityForm}>
+                Cancel
+              </button>
+            )}
+          </div>
         </form>
       </Panel>
 
@@ -309,6 +412,14 @@ function AvailabilityPage({ availability, setAvailability, clinicians, clinician
               <span>{slot.date}</span>
               <span>{slot.time || `${slot.startTime} - ${slot.endTime}`}</span>
               <small className={`status status-${slot.status.toLowerCase()}`}>{slot.status}</small>
+              <div className="record-actions">
+                <button type="button" className="action-button" onClick={() => updateSlot(slot)}>
+                  Update
+                </button>
+                <button type="button" className="action-button danger" onClick={() => deleteSlot(slot.id)}>
+                  Delete
+                </button>
+              </div>
             </>
           )}
         />

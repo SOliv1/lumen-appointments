@@ -1,79 +1,58 @@
-# UI Wireframes (ASCII)
+# Serene-Care-Sync UI Wireframes (ASCII)
 
-## Clinicians Page
-+----------------------------------------+
-| Clinicians                             |
-+----------------------------------------+
-| [Name input]                           |
-| [Role input]                           |
-| [Specialty input]                      |
-| [Contact input]                        |
-| [GMC/NMC/HCPC optional]                |
-| [Add Clinician button]                 |
-------------------------------------------
-| ID: c8f3a9d2 • Dr. Alice Morton        |
-| GP — Family Medicine — 07792 441223    |
-| [Update] [Delete]                      |
-------------------------------------------
+## Shared Layout
++----------------------------------------------------------+
+| Seasonal care studio                                     |
+| serene-care-sync                                         |
+| Calm seasonal workspace hero                             |
++----------------------------------------------------------+
+| Patients | Clinicians | Availability | Appointments      |
++----------------------------------------------------------+
 
 ## Patients Page
-+----------------------------------------+
-| Patients                               |
-+----------------------------------------+
-| [Name input]                           |
-| [DOB input]                            |
-| [Contact input]                        |
-| [Notes input]                          |
-| [Add Patient button]                   |
-------------------------------------------
-| Olivia Bennett • 1984-03-12            |
-| Asthma                                 |
-| [Update] [Delete]                      |
-------------------------------------------
++----------------------------+  +--------------------------+
+| Register / Update Patient  |  | Patient List             |
++----------------------------+  +--------------------------+
+| [Full name input]          |  | Olivia Bennett           |
+| [DOB picker]               |  | DOB 1984-03-12           |
+| [Contact input]            |  | 07792 441223             |
+| [Care notes textarea]      |  | Asthma, seasonal triggers|
+| [Add/Save Patient] [Cancel]|  | [Update] [Delete]        |
++----------------------------+  +--------------------------+
+
+## Clinicians Page
++----------------------------+  +--------------------------+
+| Add / Update Clinician     |  | Clinical Team            |
++----------------------------+  +--------------------------+
+| [Clinician name input]     |  | Dr. Alice Morton         |
+| [Role input]               |  | GP - Family Medicine     |
+| [Specialty input]          |  | 07792 441223             |
+| [Contact input]            |  | Registration 1234567     |
+| [GMC/NMC/HCPC optional]    |  | [Update] [Delete]        |
+| [Add/Save Clinician]       |  +--------------------------+
+| [Cancel] when updating     |
++----------------------------+
 
 ## Availability Page
-+----------------------------------------+
-| Availability                           |
-+----------------------------------------+
-| [Clinician dropdown]                   |
-| [Date picker]                          |
-| [Time picker]                          |
-| [Status dropdown]                      |
-| [Add Slot button]                      |
-------------------------------------------
-| Dr. Morton • 2026-08-05 • 09:00-09:30  |
-| Available                              |
-| [Update] [Delete]                      |
-------------------------------------------
++----------------------------+  +--------------------------+
+| Open / Update Availability |  | Availability Board       |
++----------------------------+  +--------------------------+
+| [Clinician dropdown]       |  | Dr. Alice Morton         |
+| [Date picker]              |  | 2026-08-05               |
+| [Start time] [End time]    |  | 09:00 - 09:30            |
+| [Status dropdown]          |  | Available                |
+| [Add/Save Availability]    |  | [Update] [Delete]        |
+| [Cancel] when updating     |  +--------------------------+
++----------------------------+
 
 ## Appointments Page
-+----------------------------------------+
-| Appointments                           |
-+----------------------------------------+
-| [Patient dropdown]                     |
-| [Clinician dropdown]                   |
-| [Date picker]                          |
-| [Time picker]                          |
-| [Reason input]                         |
-| [Add Appointment button]               |
-------------------------------------------
-| Olivia Bennett • Dr. Morton            |
-| 2026-08-05 • 09:00 • Medication review |
-| [Update] [Delete]                      |
-------------------------------------------
-
-## Contacts Page
-+----------------------------------------+
-| Contacts                               |
-+----------------------------------------+
-| [Name input]                           |
-| [Relationship input]                   |
-| [Phone input]                          |
-| [Notes input]                          |
-| [Add Contact button]                   |
-------------------------------------------
-
-| Laura Bennett • Daughter               |
-| 07792 441224                           |
-| [Update] [Delete]                      |
-------------------------------------------
++----------------------------+  +--------------------------+
+| Book / Update Appointment  |  | Appointment Schedule     |
++----------------------------+  +--------------------------+
+| [Patient dropdown]         |  | Olivia Bennett           |
+| [Clinician dropdown]       |  | Dr. Alice Morton         |
+| [Date picker] [Time picker]|  | 2026-08-05 at 09:00      |
+| [Reason textarea]          |  | Medication review        |
+| [Book/Save Appointment]    |  | [Update] [Delete]        |
+| [Cancel] when updating     |  +--------------------------+
++----------------------------+
