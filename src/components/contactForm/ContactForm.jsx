@@ -1,6 +1,6 @@
 import React from "react";
-
-export const ContactForm = ({
+import "../../App.css";
+export const ContactForm =                           ({
   name,
   setName,
   phone,
@@ -10,7 +10,7 @@ export const ContactForm = ({
   handleSubmit
 }) => {
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="form-box">
       <label>
         <input
           type="text"
@@ -46,7 +46,7 @@ export const ContactForm = ({
         />
       </label>
       <br />
-      <input type="submit" value="Add Contact" />
+      <input type="submit" value="Add Contact" className="btn-contacts" />
     </form>
   );
 };

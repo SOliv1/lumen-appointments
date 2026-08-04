@@ -1,0 +1,204 @@
+.serenecare-banner {
+    width: 100%;
+    max-height: 260px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 24px;
+
+    /* Calm, cinematic Seasonal aesthetic */
+    filter: brightness(0.98) saturate(1.05);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* Optional: Add a subtle hover effect for interactivity */
+
+.serenecare-banner {
+    display: block;
+    margin: 0 auto 24px auto;
+}
+
+/*Shared placeholder styling for inputs and textareas*/
+/* Placeholder box */
+.placeholder-box {
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 12px;
+    background: #f7f7f9;
+    border: 1px solid #e3e3e8;
+    color: #555;
+}
+
+/* Seasonal, calm color palette for form elements */
+.form-box {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    padding: 20px;
+    background: #fafafa;
+    border-radius: 12px;
+    margin-bottom: 24px;
+    border: 1px solid #e5e5ea;
+}
+
+.form-box input {
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+/* Shared button base — unified, no duplicates */
+.form-box button,
+.form-box input[type="submit"] {
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    color: white;
+    font-weight: 600;
+    cursor: pointer;
+    /* allows Seasonal colours to apply */
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.form-box button:hover,
+.form-box input[type="submit"]:hover {
+    transform: translateY(-1px);
+}
+
+/* Page-specific calming colours */
+.btn-patient,
+.form-box input[type="submit"].btn-patient {
+    background: #A7A4F2;
+    /* soft lavender */
+}
+
+.btn-patient:hover,
+.form-box input[type="submit"].btn-patient:hover {
+    background: #9693E8;
+}
+
+
+
+.btn-clinician {
+    background: #3A7F8F;
+    /* scrub teal */
+}
+
+.btn-clinician:hover {
+    background: #336F7C;
+}
+
+/* Clinicians — deep clinical navy (optional) */
+.btn-clinician-navy {
+    background: #2F4A7A;
+    /* deep clinical navy */
+}
+
+/* Clinicians — deep clinical navy (optional) */
+.btn-clinician-navy:hover {
+    background: #263E68;
+}
+
+.btn-availability,
+.form-box input[type="submit"].btn-availability {
+    background: #E8C27D;
+    /* dusk gold */
+}
+
+.btn-availability:hover,
+.form-box input[type="submit"].btn-availability:hover {
+    background: #D9B46F;
+}
+
+.btn-appointment,
+.form-box input[type="submit"].btn-appointment {
+    background: #9CCFA8;
+    /* soft green */
+}
+
+.btn-appointment:hover,
+.form-box input[type="submit"].btn-appointment:hover {
+    background: #8BC598;
+}
+
+/* Contacts — soft rose quartz */
+.btn-contacts,
+.form-box input[type="submit"].btn-contacts {
+    background: #D8A7B1;
+    /* rose quartz */
+}
+
+.btn-contacts:hover,
+.form-box input[type="submit"].btn-contacts:hover {
+    background: #C996A3;
+}
+
+
+/* Prevent edge bleed, keep colours soft */
+.btn-patient,
+.btn-clinician,
+.btn-availability,
+.btn-appointment,
+.btn-contacts {
+    background-clip: padding-box;
+}
+
+/* Clinicians — deep clinical navy (optional) */
+/* Seasonal delete button colors */
+
+.btn-delete {
+    margin-left: 12px;
+    background: #C97A7A;
+    /* soft rose red */
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-delete:hover {
+    background: #B86A6A;
+}
+
+.error-box {
+    background: #f7d7d7;
+    color: #7a2e2e;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+}
+
+
+/*Input field for editing appointments, contacts, patients, clinicians, and availability*/
+
+.btn-update {
+    margin-left: 12px;
+    background: #3A7F8F;
+    /* teal variant */
+    padding: 6px 10px;
+    border-radius: 6px;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-edit:hover {
+    background: #336F7C;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 600px) {
+    .form-box {
+        padding: 16px;
+    }
+
+    .form-box input {
+        padding: 8px;
+    }
+
+    .form-box button,
+    .form-box input[type="submit"] {
+        padding: 10px;
+    }
+}

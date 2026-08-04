@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import { Switch, Route, Redirect, NavLink } from "react-router-dom";
+import "./App.css";
+import Patients from "./components/Patients/Patients";
+import Clinicians from "./components/Clinicians/Clinicians";
+import Availability from "./components/Availability/Availability";
 
 import { AppointmentsPage } from "./containers/appointmentsPage/AppointmentsPage";
 import { ContactsPage } from "./containers/contactsPage/ContactsPage";
@@ -11,6 +15,9 @@ function App() {
   const ROUTES = {
     CONTACTS: "/contacts",
     APPOINTMENTS: "/appointments",
+    PATIENTS: "/patients",
+    CLINICIANS: "/clinicians",
+    AVAILABILITY: "/availability",
   };
 
   const addAppointment = (title, contact, date, time) => {
@@ -38,14 +45,34 @@ function App() {
 
   return (
     <>
-      <nav>
-        <NavLink to={ROUTES.CONTACTS} activeClassName="active">
-          Contacts
-        </NavLink>
-        <NavLink to={ROUTES.APPOINTMENTS} activeClassName="active">
-          Appointments
-        </NavLink>
-      </nav>
+    <img
+      src="/serenecare-banner.png"
+      alt="SereneCare Sync Banner"
+      className="serenecare-banner"
+      />
+
+    <nav>
+      <NavLink to={ROUTES.CONTACTS} activeClassName="active">
+        Contacts
+      </NavLink>
+
+      <NavLink to={ROUTES.APPOINTMENTS} activeClassName="active">
+        Appointments
+      </NavLink>
+
+      <NavLink to={ROUTES.PATIENTS} activeClassName="active">
+        Patients
+      </NavLink>
+
+      <NavLink to={ROUTES.CLINICIANS} activeClassName="active">
+        Clinicians
+      </NavLink>
+
+      <NavLink to={ROUTES.AVAILABILITY} activeClassName="active">
+        Availability
+      </NavLink>
+    </nav>
+
       <main>
         <Switch>
           <Route exact path="/">
@@ -61,6 +88,16 @@ function App() {
               contacts={contacts}
             />
           </Route>
+          <Route path={ROUTES.PATIENTS}>
+            <Patients />
+          </Route>
+          <Route path={ROUTES.CLINICIANS}>
+            <Clinicians />
+          </Route>
+          <Route path={ROUTES.AVAILABILITY}>
+            <Availability />
+          </Route>
+
         </Switch>
       </main>
     </>

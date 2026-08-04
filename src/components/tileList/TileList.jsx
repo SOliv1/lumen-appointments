@@ -1,5 +1,5 @@
-import React from "react";
-
+  import React from "react";
+import "../../App.css";
 import { Tile } from "../tile/Tile";
 
 export const TileList = ({ tiles }) => {

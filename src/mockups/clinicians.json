@@ -1,0 +1,18 @@
+[
+  {
+    "id": "c8f3a9d2",
+    "name": "Dr. Alice Morton",
+    "role": "GP",
+    "specialty": "Family Medicine",
+    "contact": "07792 441223",
+    "registrationId": "1234567"
+  },
+  {
+    "id": "f2a7c1d9",
+    "name": "Sarah Hill",
+    "role": "Nurse",
+    "specialty": "Community Nursing",
+    "contact": "07811 992344",
+    "registrationId": "AB123456"
+  }
+]

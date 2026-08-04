@@ -1,5 +1,5 @@
 import React from "react";
-
+import "../../App.css";
 import { ContactPicker } from "../contactPicker/ContactPicker";
 
 export const AppointmentForm = ({
@@ -26,7 +26,7 @@ export const AppointmentForm = ({
   };
 
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit} className="form-box">
       <label>
         <input
           type="text"
@@ -69,7 +69,7 @@ export const AppointmentForm = ({
         />
       </label>
       <br />
-      <input type="submit" value="Add Appointment" />
+      <input type="submit" value="Add Appointment" className="btn-appointment" />
     </form>
   );
 };

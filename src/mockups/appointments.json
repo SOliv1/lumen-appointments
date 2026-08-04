@@ -1,0 +1,10 @@
+[
+  {
+    "id": "appt-001",
+    "patientId": "p1a9c2d3",
+    "clinicianId": "c8f3a9d2",
+    "date": "2026-08-05",
+    "time": "09:00",
+    "reason": "Medication review"
+  }
+]
