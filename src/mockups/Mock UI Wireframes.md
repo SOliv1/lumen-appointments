@@ -39,9 +39,10 @@
 +----------------------------+  +--------------------------+
 | [Clinician dropdown]       |  | Dr. Alice Morton         |
 | [Date picker]              |  | 2026-08-05               |
-| [Start time] [End time]    |  | 09:00 - 09:30            |
-| [Status dropdown]          |  | Available                |
-| [Add/Save Availability]    |  | [Update] [Delete]        |
+| [Start time dropdown]      |  | 09:00 - 09:30            |
+| [End time dropdown]        |  | Status: Available       |
+| [Status dropdown]          |  | [Update] [Delete]        |
+| [Add/Save Availability]    |  |                          |
 | [Cancel] when updating     |  +--------------------------+
 +----------------------------+
 
@@ -51,8 +52,9 @@
 +----------------------------+  +--------------------------+
 | [Patient dropdown]         |  | Olivia Bennett           |
 | [Clinician dropdown]       |  | Dr. Alice Morton         |
-| [Date picker] [Time picker]|  | 2026-08-05 at 09:00      |
-| [Reason textarea]          |  | Medication review        |
-| [Book/Save Appointment]    |  | [Update] [Delete]        |
+| [Date picker]              |  | 2026-08-05 at 09:00      |
+| [Time dropdown]            |  | Medication review        |
+| [Reason textarea]          |  | [Update] [Delete]        |
+| [Book/Save Appointment]    |  |                          |
 | [Cancel] when updating     |  +--------------------------+
 +----------------------------+

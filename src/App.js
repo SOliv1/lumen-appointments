@@ -15,6 +15,35 @@ const ROUTES = {
 
 const makeId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 
+const TIME_OPTIONS = [
+  "08:00",
+  "08:30",
+  "09:00",
+  "09:30",
+  "10:00",
+  "10:30",
+  "11:00",
+  "11:30",
+  "12:00",
+  "12:30",
+  "13:00",
+  "13:30",
+  "14:00",
+  "14:30",
+  "15:00",
+  "15:30",
+  "16:00",
+  "16:30",
+  "17:00",
+  "17:30",
+  "18:00",
+];
+
+const getLaterTimeOptions = (time) => {
+  const timeIndex = TIME_OPTIONS.indexOf(time);
+  return TIME_OPTIONS.slice(timeIndex + 1);
+};
+
 function App() {
   const [patients, setPatients] = useState(initialPatients);
   const [clinicians, setClinicians] = useState(initialClinicians);
@@ -311,22 +340,34 @@ function AvailabilityPage({ availability, setAvailability, clinicians, clinician
   const [form, setForm] = useState({
     clinicianId: clinicians[0]?.id || "",
     date: "",
-    startTime: "",
-    endTime: "",
+    startTime: "09:00",
+    endTime: "09:30",
     status: "Available",
   });
   const [editingId, setEditingId] = useState(null);
 
   const updateForm = (event) => {
-    setForm({ ...form, [event.target.name]: event.target.value });
+    const { name, value } = event.target;
+
+    if (name === "startTime") {
+      const nextEndOptions = getLaterTimeOptions(value);
+      const endTime = nextEndOptions.includes(form.endTime)
+        ? form.endTime
+        : nextEndOptions[0] || value;
+
+      setForm({ ...form, startTime: value, endTime });
+      return;
+    }
+
+    setForm({ ...form, [name]: value });
   };
 
   const resetAvailabilityForm = () => {
     setForm({
       clinicianId: clinicians[0]?.id || "",
       date: "",
-      startTime: "",
-      endTime: "",
+      startTime: "09:00",
+      endTime: "09:30",
       status: "Available",
     });
     setEditingId(null);
@@ -382,8 +423,20 @@ function AvailabilityPage({ availability, setAvailability, clinicians, clinician
           </select>
           <input name="date" type="date" value={form.date} onChange={updateForm} required />
           <div className="split-row">
-            <input name="startTime" type="time" value={form.startTime} onChange={updateForm} required />
-            <input name="endTime" type="time" value={form.endTime} onChange={updateForm} required />
+            <select name="startTime" value={form.startTime} onChange={updateForm} required>
+              {TIME_OPTIONS.slice(0, -1).map((time) => (
+                <option key={time} value={time}>
+                  {time}
+                </option>
+              ))}
+            </select>
+            <select name="endTime" value={form.endTime} onChange={updateForm} required>
+              {getLaterTimeOptions(form.startTime).map((time) => (
+                <option key={time} value={time}>
+                  {time}
+                </option>
+              ))}
+            </select>
           </div>
           <select name="status" value={form.status} onChange={updateForm}>
             <option>Available</option>
@@ -433,7 +486,7 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
     patientId: patients[0]?.id || "",
     clinicianId: clinicians[0]?.id || "",
     date: "",
-    time: "",
+    time: "09:00",
     reason: "",
   });
   const [editingId, setEditingId] = useState(null);
@@ -447,7 +500,7 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
       patientId: patients[0]?.id || "",
       clinicianId: clinicians[0]?.id || "",
       date: "",
-      time: "",
+      time: "09:00",
       reason: "",
     });
     setEditingId(null);
@@ -506,7 +559,13 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
           </select>
           <div className="split-row">
             <input name="date" type="date" value={form.date} onChange={updateForm} required />
-            <input name="time" type="time" value={form.time} onChange={updateForm} required />
+            <select name="time" value={form.time} onChange={updateForm} required>
+              {TIME_OPTIONS.map((time) => (
+                <option key={time} value={time}>
+                  {time}
+                </option>
+              ))}
+            </select>
           </div>
           <textarea name="reason" value={form.reason} onChange={updateForm} placeholder="Reason for appointment" rows="4" />
           <div className="form-actions">
