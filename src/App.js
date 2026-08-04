@@ -127,6 +127,10 @@ function App() {
           </Route>
         </Switch>
       </main>
+
+      <footer className="app-footer">
+        <small>&copy; 2026 SereneCare Sync</small>
+      </footer>
     </div>
   );
 }

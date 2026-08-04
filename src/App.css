@@ -121,6 +121,14 @@ textarea {
   margin: 32px auto 56px;
 }
 
+.app-footer {
+  width: min(1180px, calc(100% - 32px));
+  margin: 0 auto;
+  padding: 0 0 28px;
+  color: var(--muted);
+  text-align: center;
+}
+
 .page-grid {
   display: grid;
   grid-template-columns: minmax(280px, 420px) 1fr;
