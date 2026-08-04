@@ -35,11 +35,11 @@ function App() {
       <header className="hero">
         <img src="/serenecare-banner.png" alt="" className="hero-image" />
         <div className="hero-content">
-          <p className="eyebrow">Care coordination workspace</p>
+          <p className="eyebrow">Seasonal care studio</p>
           <h1>serene-care-sync</h1>
           <p>
-            Coordinate patients, clinicians, availability and bookings from one calm,
-            operational view.
+            Coordinate patients, clinicians, availability and bookings inside a calm,
+            seasonal workspace.
           </p>
         </div>
       </header>

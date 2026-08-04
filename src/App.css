@@ -1,16 +1,18 @@
 :root {
-  --ink: #263238;
-  --muted: #63706b;
-  --surface: #ffffff;
-  --line: #dce5df;
-  --page: #f5f8f5;
-  --teal: #3a7f8f;
-  --teal-dark: #2f6875;
-  --lavender: #8b84d7;
-  --gold: #c4964f;
-  --green: #6f9d7b;
-  --rose: #b96f7c;
-  --navy: #284563;
+  --ink: #273033;
+  --muted: #68736f;
+  --surface: rgba(255, 255, 255, 0.88);
+  --surface-strong: #ffffff;
+  --line: #eadfd9;
+  --page: #f8f4f1;
+  --mist: #eef5ef;
+  --lavender: #9f92cf;
+  --rose: #c78390;
+  --gold: #c8a25d;
+  --green: #7ea889;
+  --teal: #4e93a0;
+  --plum: #544765;
+  --shadow: rgba(96, 72, 62, 0.12);
 }
 
 * {
@@ -19,7 +21,8 @@
 
 body {
   margin: 0;
-  background: var(--page);
+  background:
+    linear-gradient(180deg, #fbf8f5 0%, var(--page) 42%, #eef5ef 100%);
   color: var(--ink);
   font-family: Inter, "Segoe UI", Arial, sans-serif;
 }
@@ -37,12 +40,12 @@ textarea {
 
 .hero {
   position: relative;
-  min-height: 300px;
+  min-height: 330px;
   display: flex;
   align-items: flex-end;
-  padding: 36px clamp(20px, 5vw, 64px);
+  padding: 44px clamp(20px, 5vw, 64px);
   overflow: hidden;
-  color: #ffffff;
+  color: #fffaf4;
 }
 
 .hero-image {
@@ -51,20 +54,23 @@ textarea {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: brightness(0.66) saturate(1.04);
+  filter: brightness(0.92) saturate(1.08);
 }
 
 .hero::after {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, rgba(20, 49, 58, 0.84), rgba(20, 49, 58, 0.28));
+  background:
+    linear-gradient(90deg, rgba(62, 47, 70, 0.66), rgba(94, 123, 104, 0.18) 62%, rgba(255, 248, 240, 0.08)),
+    linear-gradient(0deg, rgba(39, 48, 51, 0.28), rgba(39, 48, 51, 0));
 }
 
 .hero-content {
   position: relative;
   z-index: 1;
-  max-width: 760px;
+  max-width: 720px;
+  text-shadow: 0 2px 18px rgba(28, 22, 24, 0.28);
 }
 
 .eyebrow {
@@ -72,6 +78,7 @@ textarea {
   font-size: 0.82rem;
   font-weight: 700;
   text-transform: uppercase;
+  color: #f4d8bf;
 }
 
 h1 {
@@ -83,7 +90,7 @@ h1 {
 .hero p:last-child {
   max-width: 620px;
   margin: 16px 0 0;
-  color: #eef7f3;
+  color: #fff7ee;
   font-size: 1.06rem;
   line-height: 1.55;
 }
@@ -93,14 +100,15 @@ h1 {
   gap: 8px;
   align-items: center;
   padding: 14px clamp(16px, 5vw, 64px);
-  background: var(--surface);
+  background: rgba(255, 251, 246, 0.92);
   border-bottom: 1px solid var(--line);
   overflow-x: auto;
+  backdrop-filter: blur(16px);
 }
 
 .app-nav a {
   flex: 0 0 auto;
-  color: var(--navy);
+  color: var(--plum);
   text-decoration: none;
   font-weight: 700;
   padding: 10px 14px;
@@ -109,8 +117,8 @@ h1 {
 
 .app-nav a:hover,
 .app-nav a.active {
-  background: #e7f0ec;
-  color: #1d5964;
+  background: #f0e5df;
+  color: #7b5360;
 }
 
 .workspace {
@@ -130,7 +138,8 @@ h1 {
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 22px;
-  box-shadow: 0 14px 30px rgba(43, 73, 65, 0.08);
+  box-shadow: 0 18px 42px var(--shadow);
+  backdrop-filter: blur(10px);
 }
 
 .panel-header {
@@ -139,7 +148,7 @@ h1 {
 
 .panel h2 {
   margin: 0;
-  color: var(--navy);
+  color: var(--plum);
   font-size: 1.22rem;
 }
 
@@ -167,8 +176,8 @@ textarea {
   min-height: 44px;
   padding: 10px 12px;
   color: var(--ink);
-  background: #fbfdfb;
-  border: 1px solid #cfdad3;
+  background: rgba(255, 253, 249, 0.92);
+  border: 1px solid #dfd3cd;
   border-radius: 6px;
   outline: none;
 }
@@ -180,8 +189,8 @@ textarea {
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: var(--teal);
-  box-shadow: 0 0 0 3px rgba(58, 127, 143, 0.14);
+  border-color: var(--rose);
+  box-shadow: 0 0 0 3px rgba(199, 131, 144, 0.16);
 }
 
 .btn {
@@ -191,10 +200,12 @@ textarea:focus {
   color: #ffffff;
   font-weight: 800;
   cursor: pointer;
+  box-shadow: 0 10px 20px rgba(96, 72, 62, 0.12);
 }
 
 .btn:hover {
-  filter: brightness(0.94);
+  filter: brightness(0.97);
+  transform: translateY(-1px);
 }
 
 .btn-patient {
@@ -222,7 +233,7 @@ textarea:focus {
   display: grid;
   gap: 5px;
   padding: 14px;
-  background: #fbfdfb;
+  background: rgba(255, 253, 249, 0.86);
   border: 1px solid var(--line);
   border-radius: 8px;
 }
@@ -244,18 +255,18 @@ textarea:focus {
 }
 
 .status-available {
-  background: #e1f1e6;
-  color: #2f7448;
+  background: #e5f1e8;
+  color: #477856;
 }
 
 .status-booked {
-  background: #eef0fb;
-  color: #4b548b;
+  background: #eee9f7;
+  color: #64548f;
 }
 
 .status-unavailable {
-  background: #f8e5e5;
-  color: #945052;
+  background: #f5e3df;
+  color: #9a5b59;
 }
 
 .empty-state,
@@ -265,7 +276,7 @@ textarea:focus {
 }
 
 .empty-state {
-  background: #eef5f1;
+  background: var(--mist);
   color: var(--muted);
 }
 
