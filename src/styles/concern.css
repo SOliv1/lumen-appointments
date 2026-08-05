@@ -1,0 +1,391 @@
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* fatigue-proof palette */
+.badge-yellow {
+    background: #f7e27b;
+}
+
+.badge-amber {
+    background: #f2b36a;
+}
+
+.badge-blue {
+    background: #8bb8e8;
+}
+
+.badge-purple {
+    background: #c7a4e0;
+}
+
+.badge-green {
+    background: #8fd4a3;
+}
+
+.badge-grey {
+    background: #d9d9d9;
+}
+
+.concern-list table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0 12px;
+}
+
+.concern-list th,
+.concern-list td {
+    padding: 14px 12px;
+    text-align: left;
+    vertical-align: top;
+}
+
+.concern-list th {
+    color: var(--plum);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+}
+
+.concern-list tbody tr {
+    background: var(--surface-strong);
+    box-shadow: 0 0 0 2px #d8c8c0;
+}
+
+.concern-list tbody tr:nth-child(even) {
+    background: #f6efe7;
+}
+
+.concern-list tbody td {
+    border-top: 1px solid #d8c8c0;
+    border-bottom: 1px solid #d8c8c0;
+}
+
+.concern-list tbody td:first-child {
+    border-left: 8px solid var(--row-status-colour, var(--seasonal-accent));
+    border-radius: 8px 0 0 8px;
+}
+
+.row-badge-yellow {
+    --row-status-colour: #f7e27b;
+}
+
+.row-badge-amber {
+    --row-status-colour: #f2b36a;
+}
+
+.row-badge-blue {
+    --row-status-colour: #8bb8e8;
+}
+
+.row-badge-purple {
+    --row-status-colour: #c7a4e0;
+}
+
+.row-badge-green {
+    --row-status-colour: #8fd4a3;
+}
+
+.row-badge-grey {
+    --row-status-colour: #d9d9d9;
+}
+
+.concern-list tbody td:last-child {
+    border-right: 1px solid #d8c8c0;
+    border-radius: 0 8px 8px 0;
+}
+
+.patient-name {
+    display: block;
+    color: var(--ink);
+    font-size: 1rem;
+}
+
+.patient-id {
+    display: block;
+    max-width: 170px;
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 0.72rem;
+    overflow-wrap: anywhere;
+}
+
+.concern-facts {
+    display: grid;
+    gap: 8px;
+    margin: 10px 0 0;
+}
+
+.concern-facts div {
+    display: grid;
+    gap: 2px;
+}
+
+.concern-facts dt {
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.concern-facts dd {
+    margin: 0;
+    color: var(--ink);
+}
+
+.patient-message {
+    max-width: 340px;
+    margin: 0;
+    color: var(--ink);
+    line-height: 1.45;
+}
+
+.staff-script {
+    max-width: 380px;
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--field);
+}
+
+.staff-script strong {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--plum);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+}
+
+.staff-script p {
+    margin: 0;
+    color: var(--ink);
+    line-height: 1.45;
+}
+
+.triage-summary {
+    min-width: 220px;
+    padding: 12px;
+    border: 1px solid #d8d4e9;
+    border-radius: 6px;
+    background: #f4f1fb;
+}
+
+.triage-summary strong {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--plum);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+}
+
+.triage-summary dl {
+    display: grid;
+    gap: 7px;
+    margin: 0;
+}
+
+.triage-summary div {
+    display: grid;
+    gap: 2px;
+}
+
+.triage-summary dt {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+
+.triage-summary dd,
+.triage-summary p {
+    margin: 0;
+    color: var(--ink);
+    line-height: 1.4;
+}
+
+.triage-summary p {
+    margin-top: 10px;
+}
+
+.journey-progress {
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.journey-waymarks {
+    display: grid;
+    gap: 6px;
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.journey-waymark {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 0.78rem;
+}
+
+.journey-waymark span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--field);
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 800;
+}
+
+.journey-waymark.complete {
+    color: var(--plum);
+}
+
+.journey-waymark.complete span {
+    background: #e5f1e8;
+    color: #477856;
+}
+
+.journey-waymark.current {
+    color: var(--ink);
+    font-weight: 800;
+}
+
+.journey-waymark.current span {
+    background: var(--seasonal-accent);
+    border-color: var(--seasonal-accent);
+    color: white;
+}
+
+.journey-actions {
+    display: grid;
+    gap: 8px;
+    min-width: 180px;
+}
+
+.next-step-button,
+.previous-step-button {
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 800;
+}
+
+.next-step-button {
+    background: var(--seasonal-accent);
+    color: white;
+    border: none;
+}
+
+.previous-step-button {
+    background: var(--field);
+    color: var(--plum);
+    border: 1px solid var(--line);
+}
+
+.create-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: min(100%, 420px);
+    min-height: 62px;
+    justify-self: center;
+    padding: 0 24px;
+    border: 0;
+    border-radius: 6px;
+    background: var(--seasonal-accent);
+    color: #ffffff;
+    font-size: 1.12rem;
+    font-weight: 900;
+    cursor: pointer;
+    box-shadow: 0 16px 32px rgba(125, 83, 96, 0.2);
+}
+
+.create-button:hover {
+    filter: brightness(0.97);
+    transform: translateY(-1px);
+}
+
+@media (max-width: 900px) {
+    .concern-list table,
+    .concern-list thead,
+    .concern-list tbody,
+    .concern-list tr,
+    .concern-list th,
+    .concern-list td {
+        display: block;
+    }
+
+    .concern-list thead {
+        display: none;
+    }
+
+    .concern-list tbody tr {
+        margin-bottom: 16px;
+        border-left: 8px solid var(--row-status-colour, var(--seasonal-accent));
+        border-radius: 8px;
+        box-shadow: 0 0 0 2px #d8c8c0;
+        overflow: hidden;
+    }
+
+    .concern-list tbody td {
+        border: 0;
+        border-bottom: 1px solid #d8c8c0;
+    }
+
+    .concern-list tbody td:first-child {
+        border-left: 0;
+        border-radius: 0;
+    }
+
+    .concern-list tbody td:last-child {
+        border-right: 0;
+        border-bottom: 0;
+        border-radius: 0;
+    }
+
+    .concern-list tbody td::before {
+        display: block;
+        margin-bottom: 6px;
+        color: var(--plum);
+        font-size: 0.72rem;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .concern-list tbody td:nth-child(1)::before {
+        content: "Patient";
+    }
+
+    .concern-list tbody td:nth-child(2)::before {
+        content: "Appointment Purpose";
+    }
+
+    .concern-list tbody td:nth-child(3)::before {
+        content: "Patient Information";
+    }
+
+    .concern-list tbody td:nth-child(4)::before {
+        content: "Triage Preview";
+    }
+
+    .concern-list tbody td:nth-child(5)::before {
+        content: "Concern Status";
+    }
+
+    .concern-list tbody td:nth-child(6)::before {
+        content: "Next Step";
+    }
+}

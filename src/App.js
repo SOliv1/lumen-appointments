@@ -1,6 +1,10 @@
 import React, { useMemo, useState } from "react";
-import { NavLink, Redirect, Route, Switch } from "react-router-dom";
+import { Link, NavLink, Redirect, Route, Switch } from "react-router-dom";
 import "./App.css";
+import "./styles/concern.css";
+import ConcernList from "./concern/ConcernList";
+import NewConcern from "./concern/NewConcern";
+import { buildPatientScript } from "./concern/patientScript";
 import initialAppointments from "./mockups/appointments.json";
 import initialAvailability from "./mockups/availability.json";
 import initialClinicians from "./mockups/clinicians.json";
@@ -11,6 +15,9 @@ const ROUTES = {
   CLINICIANS: "/clinicians",
   AVAILABILITY: "/availability",
   APPOINTMENTS: "/appointments",
+  NEW_CONCERN: "/concern/new",
+  CONCERNS: "/concerns",
+
 };
 
 const makeId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
@@ -39,6 +46,337 @@ const TIME_OPTIONS = [
   "18:00",
 ];
 
+const EXTRA_MOCK_PATIENTS = [
+  { id: "mock-patient-2", name: "James Carter", dob: "1972-11-08", contact: "07700 900102", notes: "Recent appointment changes caused confusion" },
+  { id: "mock-patient-3", name: "Sophia Patel", dob: "1991-06-24", contact: "07700 900103", notes: "Prefers written confirmation" },
+  { id: "mock-patient-4", name: "Liam Thompson", dob: "1965-01-17", contact: "07700 900104", notes: "Needs clear reason for visit before attending" },
+  { id: "mock-patient-5", name: "Grace Wilson", dob: "1958-09-02", contact: "07700 900105", notes: "Hearing difficulty, prefers SMS follow-up" },
+  { id: "mock-patient-6", name: "Noah Ahmed", dob: "2001-12-19", contact: "07700 900106", notes: "Student, limited availability after 15:00" },
+  { id: "mock-patient-7", name: "Amelia Green", dob: "1989-04-05", contact: "07700 900107", notes: "Anxiety around unexplained appointment changes" },
+  { id: "mock-patient-8", name: "George Evans", dob: "1947-07-30", contact: "07700 900108", notes: "Requires carer to attend" },
+  { id: "mock-patient-9", name: "Maya Robinson", dob: "1996-02-14", contact: "07700 900109", notes: "Uses patient portal regularly" },
+  { id: "mock-patient-10", name: "Henry Clarke", dob: "1979-10-22", contact: "07700 900110", notes: "Works shifts, needs exact confirmed time" },
+  { id: "mock-patient-11", name: "Isla Morgan", dob: "2015-05-11", contact: "07700 900111", notes: "Parent contact required" },
+  { id: "mock-patient-12", name: "Arthur Price", dob: "1939-03-18", contact: "07700 900112", notes: "Medication list reviewed by daughter" },
+];
+
+const EXTRA_MOCK_CLINICIANS = [
+  { id: "mock-clinician-2", name: "Dr Ravi Singh", role: "Clinician", specialty: "General appointment clinic", contact: "07700 910201", registrationId: "2345678" },
+  { id: "mock-clinician-3", name: "Dr Emily Rhodes", role: "Clinician", specialty: "Clinical review clinic", contact: "07700 910202", registrationId: "3456789" },
+  { id: "mock-clinician-4", name: "Nurse Hannah Lee", role: "Nurse", specialty: "Nurse-led appointments", contact: "07700 910203", registrationId: "CD123456" },
+  { id: "mock-clinician-5", name: "Dr Marcus Hale", role: "Clinician", specialty: "General appointment clinic", contact: "07700 910204", registrationId: "4567890" },
+  { id: "mock-clinician-6", name: "Priya Nair", role: "Pharmacist", specialty: "Medication support", contact: "07700 910205", registrationId: "EF123456" },
+  { id: "mock-clinician-7", name: "Dr Laura Chen", role: "Clinician", specialty: "General appointment clinic", contact: "07700 910206", registrationId: "5678901" },
+];
+
+const MOCK_CONCERN_DESCRIPTIONS = [
+  "Persistent cough",
+  "Chest discomfort",
+  "Medication query",
+  "Low mood",
+  "Shortness of breath",
+  "Pain in lower back",
+  "Blood pressure follow-up",
+  "Diabetes review",
+  "Child fever advice",
+  "Appointment time confusion",
+  "Test result query",
+  "Repeat prescription request",
+];
+
+const INITIAL_MOCK_CONCERNS = [
+  {
+    id: "concern-demo-1",
+    patientId: "p1a9c2d3",
+    description: "Persistent cough",
+    patientMessage: "The request is recorded as Persistent cough. Staff can confirm the recorded reason and explain that the appropriate clinician will review it before any advice or plan is given.",
+    confirmedTime: "Not confirmed yet",
+    confirmationMethod: "Not confirmed",
+    trigger: "phone",
+    status: "Awaiting Review",
+    triage: {
+      urgency: "Not triaged",
+      route: "Not assigned",
+      timeframe: "Not set",
+      redFlagCheck: "Not recorded",
+      note: "Awaiting authorised review.",
+    },
+    matchedSlotId: "",
+    appointmentId: "",
+  },
+  {
+    id: "concern-demo-2",
+    patientId: "mock-patient-2",
+    description: "Chest discomfort",
+    patientMessage: "The request is recorded as Chest discomfort. Staff can confirm the recorded reason, current appointment time, and that clinical staff will review the concern.",
+    confirmedTime: "11:30 AM",
+    confirmationMethod: "Phone",
+    trigger: "phone",
+    status: "Ready for Triage",
+    triage: {
+      urgency: "Same day",
+      route: "Clinical review clinic",
+      timeframe: "Today",
+      redFlagCheck: "Recorded for clinician check",
+      note: "Administrative record flags this for clinician triage; no clinical advice has been added.",
+    },
+    matchedSlotId: "",
+    appointmentId: "",
+  },
+  {
+    id: "concern-demo-3",
+    patientId: "mock-patient-3",
+    description: "Medication query",
+    patientMessage: "The request is recorded as Medication query. Staff can confirm this is about medication information and that a suitable staff member will review the record.",
+    confirmedTime: "09:30 AM",
+    confirmationMethod: "Letter",
+    trigger: "email",
+    status: "Appointment Required",
+    triage: {
+      urgency: "Routine",
+      route: "Medication support",
+      timeframe: "Next available routine slot",
+      redFlagCheck: "No red flag note recorded",
+      note: "Medication query needs an appropriate reviewer before any medication information is confirmed.",
+    },
+    matchedSlotId: "",
+    appointmentId: "",
+  },
+  {
+    id: "concern-demo-4",
+    patientId: "mock-patient-4",
+    description: "Shortness of breath",
+    patientMessage: "The request is recorded as Shortness of breath. Staff can confirm the recorded reason and make sure the concern is seen by clinical staff for review.",
+    confirmedTime: "Not confirmed yet",
+    confirmationMethod: "Portal",
+    trigger: "portal",
+    status: "Needs Information",
+    triage: {
+      urgency: "Not triaged",
+      route: "Not assigned",
+      timeframe: "Not set",
+      redFlagCheck: "More information needed",
+      note: "More information is needed before this can be safely routed.",
+    },
+    matchedSlotId: "",
+    appointmentId: "",
+  },
+  {
+    id: "concern-demo-5",
+    patientId: "mock-patient-5",
+    description: "Blood pressure follow-up",
+    patientMessage: "The request is recorded as Blood pressure follow-up. Staff can confirm the recorded reason and the current appointment or review status.",
+    confirmedTime: "10:30 AM",
+    confirmationMethod: "SMS",
+    trigger: "sms",
+    status: "Triaged",
+    triage: {
+      urgency: "Routine",
+      route: "Nurse-led appointments",
+      timeframe: "Within 2 weeks",
+      redFlagCheck: "No red flag note recorded",
+      note: "Routed for routine appointment handling.",
+    },
+    matchedSlotId: "",
+    appointmentId: "",
+  },
+  {
+    id: "concern-demo-6",
+    patientId: "mock-patient-6",
+    description: "Low mood",
+    patientMessage: "The request is recorded as Low mood. Staff can confirm the recorded reason and that the concern is being handled through the care journey.",
+    confirmedTime: "15:30 PM",
+    confirmationMethod: "Email",
+    trigger: "email",
+    status: "Appointment Booked",
+    triage: {
+      urgency: "Soon",
+      route: "Clinical review clinic",
+      timeframe: "Booked today",
+      redFlagCheck: "No red flag note recorded",
+      note: "Appointment has been booked; staff should confirm only the recorded time and purpose.",
+    },
+    matchedSlotId: "availability-demo-8",
+    appointmentId: "appt-demo-3",
+  },
+  {
+    id: "concern-demo-7",
+    patientId: "mock-patient-7",
+    description: "Appointment time confusion",
+    patientMessage: "The current recorded time is 11:30 AM. This record exists to confirm the correct time and reduce confusion from earlier changes.",
+    confirmedTime: "11:30 AM",
+    confirmationMethod: "Phone",
+    trigger: "phone",
+    status: "Awaiting Review",
+    triage: {
+      urgency: "Administrative clarification",
+      route: "Booking team",
+      timeframe: "Before appointment",
+      redFlagCheck: "Not applicable",
+      note: "Primary need is to confirm the correct recorded appointment time.",
+    },
+    matchedSlotId: "",
+    appointmentId: "",
+  },
+  {
+    id: "concern-demo-8",
+    patientId: "mock-patient-8",
+    description: "Pain in lower back",
+    patientMessage: "The request is recorded as Pain in lower back. Staff can confirm the recorded reason and current status without giving clinical advice.",
+    confirmedTime: "14:00 PM",
+    confirmationMethod: "Letter",
+    trigger: "walk-in",
+    status: "Ready for Triage",
+    triage: {
+      urgency: "Routine",
+      route: "General appointment clinic",
+      timeframe: "Next available routine slot",
+      redFlagCheck: "No red flag note recorded",
+      note: "Ready for authorised triage to confirm route and appointment need.",
+    },
+    matchedSlotId: "",
+    appointmentId: "",
+  },
+  {
+    id: "concern-demo-9",
+    patientId: "mock-patient-9",
+    description: "Test result query",
+    patientMessage: "The request is recorded as Test result query. Staff can confirm this is about test results and that the result discussion needs an appropriate reviewer.",
+    confirmedTime: "Not confirmed yet",
+    confirmationMethod: "Not confirmed",
+    trigger: "portal",
+    status: "Appointment Required",
+    triage: {
+      urgency: "Routine",
+      route: "Clinical review clinic",
+      timeframe: "Next available routine slot",
+      redFlagCheck: "No red flag note recorded",
+      note: "Needs an appointment with an appropriate reviewer for recorded test result query.",
+    },
+    matchedSlotId: "",
+    appointmentId: "",
+  },
+  {
+    id: "concern-demo-10",
+    patientId: "mock-patient-10",
+    description: "Medication query",
+    patientMessage: "The request is recorded as Medication query. Staff can confirm the recorded reason and that medication details should be checked by an appropriate staff member.",
+    confirmedTime: "16:00 PM",
+    confirmationMethod: "SMS",
+    trigger: "phone",
+    status: "Closed",
+    triage: {
+      urgency: "Routine",
+      route: "Medication support",
+      timeframe: "Closed",
+      redFlagCheck: "No red flag note recorded",
+      note: "Concern closed after administrative handling.",
+    },
+    matchedSlotId: "",
+    appointmentId: "",
+  },
+];
+
+const INITIAL_MOCK_AVAILABILITY = [
+  ...initialAvailability,
+  {
+    id: "availability-demo-2",
+    clinicianId: "mock-clinician-2",
+    date: getTodayIsoDate(),
+    startTime: "09:30",
+    endTime: "10:00",
+    status: "Booked",
+  },
+  {
+    id: "availability-demo-3",
+    clinicianId: "mock-clinician-2",
+    date: getTodayIsoDate(),
+    startTime: "11:00",
+    endTime: "11:30",
+    status: "Available",
+  },
+  {
+    id: "availability-demo-4",
+    clinicianId: "mock-clinician-3",
+    date: getTodayIsoDate(),
+    startTime: "11:30",
+    endTime: "12:00",
+    status: "Available",
+  },
+  {
+    id: "availability-demo-5",
+    clinicianId: "mock-clinician-4",
+    date: getTodayIsoDate(),
+    startTime: "10:00",
+    endTime: "10:30",
+    status: "Available",
+  },
+  {
+    id: "availability-demo-6",
+    clinicianId: "mock-clinician-5",
+    date: getTodayIsoDate(),
+    startTime: "10:30",
+    endTime: "11:00",
+    status: "Available",
+  },
+  {
+    id: "availability-demo-7",
+    clinicianId: "mock-clinician-6",
+    date: getTodayIsoDate(),
+    startTime: "14:00",
+    endTime: "14:30",
+    status: "Unavailable",
+  },
+  {
+    id: "availability-demo-8",
+    clinicianId: "mock-clinician-3",
+    date: getTodayIsoDate(),
+    startTime: "15:30",
+    endTime: "16:00",
+    status: "Booked",
+  },
+  {
+    id: "availability-demo-9",
+    clinicianId: "mock-clinician-7",
+    date: getTodayIsoDate(),
+    startTime: "16:00",
+    endTime: "16:30",
+    status: "Available",
+  },
+  {
+    id: "availability-demo-10",
+    clinicianId: "mock-clinician-5",
+    date: getTodayIsoDate(),
+    startTime: "16:30",
+    endTime: "17:00",
+    status: "Available",
+  },
+];
+
+const INITIAL_MOCK_APPOINTMENTS = [
+  ...initialAppointments,
+  {
+    id: "appt-demo-2",
+    patientId: "mock-patient-2",
+    clinicianId: "mock-clinician-2",
+    date: getTodayIsoDate(),
+    time: "09:30",
+    reason: "Chest discomfort follow-up",
+    patientMessage: "The request is recorded as Chest discomfort. Staff can confirm the recorded reason, current appointment time, and that clinical staff will review the concern.",
+    confirmationMethod: "Phone",
+  },
+  {
+    id: "appt-demo-3",
+    patientId: "mock-patient-6",
+    clinicianId: "mock-clinician-3",
+    date: getTodayIsoDate(),
+    time: "15:30",
+    reason: "Low mood review",
+    patientMessage: "The request is recorded as Low mood. Staff can confirm the recorded reason and that the concern is being handled through the care journey.",
+    confirmationMethod: "Email",
+  },
+];
+
 const getLaterTimeOptions = (time) => {
   const timeIndex = TIME_OPTIONS.indexOf(time);
   return TIME_OPTIONS.slice(timeIndex + 1);
@@ -54,10 +392,11 @@ const formatUkDate = (isoDate) => {
 };
 
 function App() {
-  const [patients, setPatients] = useState(initialPatients);
-  const [clinicians, setClinicians] = useState(initialClinicians);
-  const [availability, setAvailability] = useState(initialAvailability);
-  const [appointments, setAppointments] = useState(initialAppointments);
+  const [patients, setPatients] = useState([...initialPatients, ...EXTRA_MOCK_PATIENTS]);
+  const [clinicians, setClinicians] = useState([...initialClinicians, ...EXTRA_MOCK_CLINICIANS]);
+  const [availability, setAvailability] = useState(INITIAL_MOCK_AVAILABILITY);
+  const [appointments, setAppointments] = useState(INITIAL_MOCK_APPOINTMENTS);
+  const [concerns, setConcerns] = useState(INITIAL_MOCK_CONCERNS);
 
   const patientLookup = useMemo(
     () => Object.fromEntries(patients.map((patient) => [patient.id, patient])),
@@ -67,6 +406,159 @@ function App() {
     () => Object.fromEntries(clinicians.map((clinician) => [clinician.id, clinician])),
     [clinicians]
   );
+  const concernListItems = useMemo(
+    () =>
+      concerns.map((concern) => ({
+        ...concern,
+        patientName: patientLookup[concern.patientId]?.name || concern.patientId,
+      })),
+    [concerns, patientLookup]
+  );
+
+  const updateConcernJourney = (id, changes) => {
+    setConcerns((currentConcerns) =>
+      currentConcerns.map((concern) =>
+        concern.id === id ? { ...concern, ...changes } : concern
+      )
+    );
+  };
+
+  const matchConcernJourneyToSlot = (concern) => {
+    const today = getTodayIsoDate();
+    const matchedSlot = availability
+      .filter((slot) => slot.date === today && slot.status === "Available")
+      .sort((first, second) => getSlotStartTime(first).localeCompare(getSlotStartTime(second)))
+      .find(
+        (slot) =>
+          !concerns.some((other) => other.id !== concern.id && other.matchedSlotId === slot.id)
+      );
+
+    if (!matchedSlot) {
+      updateConcernJourney(concern.id, { status: "Needs Information", matchedSlotId: "" });
+      return;
+    }
+
+    const appointment = {
+      id: makeId("appt"),
+      patientId: concern.patientId,
+      clinicianId: matchedSlot.clinicianId,
+      date: matchedSlot.date,
+      time: getSlotStartTime(matchedSlot),
+      reason: concern.description,
+      patientMessage: concern.patientMessage,
+      staffScript: concern.staffScript,
+      confirmationMethod: "System matched slot",
+    };
+
+    setAppointments((currentAppointments) => [...currentAppointments, appointment]);
+    setAvailability((currentAvailability) =>
+      currentAvailability.map((slot) =>
+        slot.id === matchedSlot.id ? { ...slot, status: "Booked" } : slot
+      )
+    );
+    updateConcernJourney(concern.id, {
+      status: "Appointment Booked",
+      matchedSlotId: matchedSlot.id,
+      appointmentId: appointment.id,
+    });
+  };
+
+  const confirmConcernJourney = (concern) => {
+    const matchedSlot = availability.find((slot) => slot.id === concern.matchedSlotId);
+
+    if (!matchedSlot) {
+      updateConcernJourney(concern.id, { status: "Appointment Required" });
+      return;
+    }
+
+    const appointment = {
+      id: makeId("appt"),
+      patientId: concern.patientId,
+      clinicianId: matchedSlot.clinicianId,
+      date: matchedSlot.date,
+      time: getSlotStartTime(matchedSlot),
+      reason: concern.description,
+      patientMessage: concern.patientMessage,
+      staffScript: concern.staffScript,
+      confirmationMethod: "System matched slot",
+    };
+
+    setAppointments((currentAppointments) => [...currentAppointments, appointment]);
+    setAvailability((currentAvailability) =>
+      currentAvailability.map((slot) =>
+        slot.id === matchedSlot.id ? { ...slot, status: "Booked" } : slot
+      )
+    );
+    updateConcernJourney(concern.id, { status: "Appointment Booked", appointmentId: appointment.id });
+  };
+
+  const advanceConcernJourney = (id, action, targetStatus) => {
+    const concern = concerns.find((item) => item.id === id);
+
+    if (!concern) {
+      return;
+    }
+
+    switch (action) {
+      case "set-status":
+        updateConcernJourney(id, { status: targetStatus });
+        break;
+      case "triage":
+        updateConcernJourney(id, { status: "Ready for Triage" });
+        break;
+      case "review":
+        updateConcernJourney(id, { status: "Triaged" });
+        break;
+      case "assign":
+        updateConcernJourney(id, { status: "Appointment Required" });
+        break;
+      case "match":
+        matchConcernJourneyToSlot(concern);
+        break;
+      case "accept":
+        updateConcernJourney(id, { status: "Appointment Booked" });
+        break;
+      case "confirm":
+        confirmConcernJourney(concern);
+        break;
+      case "close":
+        updateConcernJourney(id, { status: "Closed" });
+        break;
+      default:
+        break;
+    }
+  };
+
+  const addConcern = (concern) => {
+    setConcerns((currentConcerns) => [
+      ...currentConcerns,
+      {
+        ...concern,
+        id: concern.id || makeId("concern"),
+        patientId: concern.patientId || concern.patientName,
+        status: concern.status || "Awaiting Review",
+        patientMessage: concern.patientMessage || "Staff should record a plain-language explanation before offering an appointment.",
+        confirmedTime: concern.confirmedTime || "Not confirmed yet",
+        confirmationMethod: concern.confirmationMethod || "Not confirmed",
+        staffScript: concern.staffScript || buildPatientScript({
+          description: concern.description,
+          status: concern.status || "Awaiting Review",
+          confirmedTime: concern.confirmedTime || "Not confirmed yet",
+          confirmationMethod: concern.confirmationMethod || "Not confirmed",
+        }),
+        triage: concern.triage || {
+          urgency: "Not triaged",
+          route: "Not assigned",
+          timeframe: "Not set",
+          redFlagCheck: "Not recorded",
+          note: "Awaiting authorised triage.",
+        },
+        createdAt: concern.createdAt || new Date().toISOString(),
+        matchedSlotId: concern.matchedSlotId || "",
+        appointmentId: concern.appointmentId || "",
+      },
+    ]);
+  };
 
   return (
     <div className="app-shell">
@@ -107,6 +599,16 @@ function App() {
           <Route path={ROUTES.CLINICIANS}>
             <CliniciansPage clinicians={clinicians} setClinicians={setClinicians} />
           </Route>
+          <Route path={ROUTES.NEW_CONCERN}>
+            <NewConcern
+              addConcern={addConcern}
+              patients={patients}
+              descriptions={MOCK_CONCERN_DESCRIPTIONS}
+            />
+          </Route>
+          <Route path={ROUTES.CONCERNS}>
+            <ConcernList concerns={concernListItems} onAdvanceConcern={advanceConcernJourney} />
+          </Route>
           <Route path={ROUTES.AVAILABILITY}>
             <AvailabilityPage
               availability={availability}
@@ -133,6 +635,14 @@ function App() {
       </footer>
     </div>
   );
+}
+
+function getTodayIsoDate() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function getSlotStartTime(slot) {
+  return slot.startTime || slot.time?.split("-")[0] || "";
 }
 
 function PatientsPage({ patients, setPatients }) {
@@ -420,76 +930,88 @@ function AvailabilityPage({ availability, setAvailability, clinicians, clinician
   };
 
   return (
-    <section className="page-grid">
-      <Panel
-        title={editingId ? "Update Availability" : "Open Availability"}
-        subtitle="Publish clinician slots for booking."
-      >
-        <form onSubmit={saveSlot} className="form-grid">
-          <select name="clinicianId" value={form.clinicianId} onChange={updateForm} required>
-            {clinicians.map((clinician) => (
-              <option key={clinician.id} value={clinician.id}>
-                {clinician.name} - {clinician.role}
-              </option>
-            ))}
-          </select>
-          <input name="date" type="date" value={form.date} onChange={updateForm} required />
-          <div className="split-row">
-            <select name="startTime" value={form.startTime} onChange={updateForm} required>
-              {TIME_OPTIONS.slice(0, -1).map((time) => (
-                <option key={time} value={time}>
-                  {time}
-                </option>
-              ))}
-            </select>
-            <select name="endTime" value={form.endTime} onChange={updateForm} required>
-              {getLaterTimeOptions(form.startTime).map((time) => (
-                <option key={time} value={time}>
-                  {time}
-                </option>
-              ))}
-            </select>
-          </div>
-          <select name="status" value={form.status} onChange={updateForm}>
-            <option>Available</option>
-            <option>Booked</option>
-            <option>Unavailable</option>
-          </select>
-          <div className="form-actions">
-            <button type="submit" className="btn btn-availability">
-              {editingId ? "Save Availability" : "Add Availability"}
-            </button>
-            {editingId && (
-              <button type="button" className="btn btn-quiet" onClick={resetAvailabilityForm}>
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
-      </Panel>
+    <>
+      <div className="availability-command-bar">
+        <div>
+          <p className="command-kicker">Appointment journey</p>
+          <h1>Availability</h1>
+        </div>
+        <Link to={ROUTES.NEW_CONCERN} className="btn btn-concern command-button">
+          Begin Care Journey
+        </Link>
+      </div>
 
-      <Panel title="Availability Board" subtitle={`${availability.length} slots`}>
-        <RecordList
-          items={availability}
-          renderItem={(slot) => (
-            <>
-              <strong>{clinicianLookup[slot.clinicianId]?.name || slot.clinicianId}</strong>
-              <span>{formatUkDate(slot.date)}</span>
-              <span>{slot.time || `${slot.startTime} - ${slot.endTime}`}</span>
-              <small className={`status status-${slot.status.toLowerCase()}`}>{slot.status}</small>
-              <div className="record-actions">
-                <button type="button" className="action-button" onClick={() => updateSlot(slot)}>
-                  Update
+      <section className="page-grid">
+        <Panel
+          title={editingId ? "Update Availability" : "Open Availability"}
+          subtitle="Publish clinician slots for booking."
+        >
+          <form onSubmit={saveSlot} className="form-grid">
+            <select name="clinicianId" value={form.clinicianId} onChange={updateForm} required>
+              {clinicians.map((clinician) => (
+                <option key={clinician.id} value={clinician.id}>
+                  {clinician.name} - {clinician.role}
+                </option>
+              ))}
+            </select>
+            <input name="date" type="date" value={form.date} onChange={updateForm} required />
+            <div className="split-row">
+              <select name="startTime" value={form.startTime} onChange={updateForm} required>
+                {TIME_OPTIONS.slice(0, -1).map((time) => (
+                  <option key={time} value={time}>
+                    {time}
+                  </option>
+                ))}
+              </select>
+              <select name="endTime" value={form.endTime} onChange={updateForm} required>
+                {getLaterTimeOptions(form.startTime).map((time) => (
+                  <option key={time} value={time}>
+                    {time}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <select name="status" value={form.status} onChange={updateForm}>
+              <option>Available</option>
+              <option>Booked</option>
+              <option>Unavailable</option>
+            </select>
+            <div className="form-actions">
+              <button type="submit" className="btn btn-availability">
+                {editingId ? "Save Availability" : "Add Availability"}
+              </button>
+              {editingId && (
+                <button type="button" className="btn btn-quiet" onClick={resetAvailabilityForm}>
+                  Cancel
                 </button>
-                <button type="button" className="action-button danger" onClick={() => deleteSlot(slot.id)}>
-                  Delete
-                </button>
-              </div>
-            </>
-          )}
-        />
-      </Panel>
-    </section>
+              )}
+            </div>
+          </form>
+        </Panel>
+
+        <Panel title="Availability Board" subtitle={`${availability.length} slots`}>
+          <RecordList
+            items={availability}
+            renderItem={(slot) => (
+              <>
+                <strong>{clinicianLookup[slot.clinicianId]?.name || slot.clinicianId}</strong>
+                <span>{formatUkDate(slot.date)}</span>
+                <span>{slot.time || `${slot.startTime} - ${slot.endTime}`}</span>
+                <small className={`status status-${slot.status.toLowerCase()}`}>{slot.status}</small>
+                <div className="record-actions">
+                  <button type="button" className="action-button" onClick={() => updateSlot(slot)}>
+                    Update
+                  </button>
+                  <button type="button" className="action-button danger" onClick={() => deleteSlot(slot.id)}>
+                    Delete
+                  </button>
+                </div>
+              </>
+            )}
+          />
+        </Panel>
+      </section>
+    </>
   );
 }
 

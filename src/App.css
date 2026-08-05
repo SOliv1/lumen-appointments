@@ -13,6 +13,7 @@
   --green: #7ea889;
   --teal: #4e93a0;
   --plum: #544765;
+  --seasonal-accent: var(--rose);
   --shadow: rgba(83, 64, 57, 0.08);
 }
 
@@ -92,13 +93,19 @@ textarea {
 
 .app-nav {
   display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   align-items: center;
+  justify-content: center;
+  position: sticky;
+  top: 0;
+  z-index: 10;
   padding: 14px clamp(16px, 5vw, 64px);
   background: rgba(248, 242, 235, 0.94);
   border-bottom: 1px solid var(--line);
   overflow-x: auto;
   backdrop-filter: blur(16px);
+  box-shadow: 0 10px 24px rgba(83, 64, 57, 0.08);
 }
 
 .app-nav a {
@@ -119,6 +126,46 @@ textarea {
 .workspace {
   width: min(1180px, calc(100% - 32px));
   margin: 32px auto 56px;
+}
+
+.availability-command-bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 18px;
+  margin: 0 0 18px;
+  padding: 26px 20px;
+  background: rgba(251, 247, 240, 0.76);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.availability-command-bar h1 {
+  margin: 2px 0 0;
+  color: var(--plum);
+  font-size: 1.45rem;
+}
+
+.command-kicker {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.command-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: min(100%, 420px);
+  min-height: 66px;
+  padding: 0 24px;
+  text-decoration: none;
+  font-size: 1.18rem;
+  font-weight: 900;
 }
 
 .app-footer {
@@ -235,6 +282,10 @@ textarea:focus {
   background: var(--green);
 }
 
+.btn-concern {
+  background: var(--rose);
+}
+
 .btn-quiet {
   background: #efe5df;
   color: var(--plum);
@@ -308,6 +359,42 @@ textarea:focus {
   color: #9a5b59;
 }
 
+.stacked-panels {
+  display: grid;
+  gap: 24px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.availability-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.availability-table th,
+.availability-table td {
+  padding: 11px 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  color: var(--ink);
+}
+
+.availability-table th {
+  color: var(--plum);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.concern-meta {
+  justify-self: start;
+}
+
+.concern-actions {
+  margin-top: 4px;
+}
+
 .empty-state,
 .error-box {
   padding: 12px;
@@ -328,6 +415,17 @@ textarea:focus {
 @media (max-width: 760px) {
   .hero {
     min-height: 260px;
+  }
+
+  .availability-command-bar {
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .command-button {
+    width: 100%;
+    min-height: 58px;
+    font-size: 1.06rem;
   }
 
   .page-grid,
