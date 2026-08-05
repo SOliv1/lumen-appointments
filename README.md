@@ -1,5 +1,8 @@
 # SereneCare Sync
 
+> "We are not building software.
+> We are building confidence, clarity and continuity for people at moments when they most need reassurance."
+
 Creating a calmer, smarter and more compassionate healthcare journey by connecting patients, clinicians and healthcare services through intelligent coordination and communication.”
 
 A calm, structured care-coordination workspace where staff, patients, clinicians and schedules stay synced.
