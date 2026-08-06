@@ -4,14 +4,35 @@ import {
   getNextClinicianStep,
   getPreviousClinicianStep,
 } from "./clinicianJourney";
+import JourneyPositionBanner from "../JourneyPositionBanner";
+import NoteTimeline from "../notes/NoteTimeline";
 
-function ClinicianQueue({ concerns, patientLookup, onUpdateClinicianJourney }) {
+function ClinicianQueue({ concerns, patientLookup, onUpdateClinicianJourney, onAddConcernNote }) {
+  const activeConcern =
+    concerns.find((concern) => (concern.clinicianContact?.queryStatus || "").includes("requested")) ||
+    concerns.find((concern) => concern.status !== "Closed") ||
+    concerns[0];
+  const activePatientName =
+    activeConcern &&
+    (patientLookup[activeConcern.patientId]?.name || activeConcern.patientName || activeConcern.patientId);
+  const activeStep = activeConcern?.clinicianStep || "Today's care queue";
+
   return (
     <section className="clinician-queue">
       <div className="queue-header">
         <p className="command-kicker">Internal admin-clinical communication</p>
         <h2>Today's Care Queue</h2>
       </div>
+
+      {activeConcern && (
+        <JourneyPositionBanner
+          pathway="Clinician"
+          waymark={activeStep}
+          state={activeConcern.status}
+          detail={`${activePatientName}: ${activeConcern.description}`}
+          className="clinician-position-banner"
+        />
+      )}
 
       <div className="queue-list">
         {concerns.map((concern) => (
@@ -20,6 +41,7 @@ function ClinicianQueue({ concerns, patientLookup, onUpdateClinicianJourney }) {
             concern={concern}
             patientName={patientLookup[concern.patientId]?.name || concern.patientName || concern.patientId}
             onUpdateClinicianJourney={onUpdateClinicianJourney}
+            onAddConcernNote={onAddConcernNote}
           />
         ))}
       </div>
@@ -27,7 +49,7 @@ function ClinicianQueue({ concerns, patientLookup, onUpdateClinicianJourney }) {
   );
 }
 
-function ClinicianQueueCard({ concern, patientName, onUpdateClinicianJourney }) {
+function ClinicianQueueCard({ concern, patientName, onUpdateClinicianJourney, onAddConcernNote }) {
   const currentStep = concern.clinicianStep || "Today's care queue";
   const currentStepNumber = getClinicianStepNumber(currentStep);
   const previousStep = getPreviousClinicianStep(currentStep);
@@ -128,17 +150,13 @@ function ClinicianQueueCard({ concern, patientName, onUpdateClinicianJourney }) 
         </ol>
       </div>
 
-      <label className="clinical-note-field">
-        Brief clinical note
-        <textarea
-          value={concern.clinicalNote || ""}
-          onChange={(event) =>
-            onUpdateClinicianJourney(concern.id, { clinicalNote: event.target.value })
-          }
-          placeholder="Brief note only. Not a full medical record."
-          rows="3"
-        />
-      </label>
+      <NoteTimeline
+        notes={concern.notes}
+        title="Clinical and Internal Notes"
+        defaultType="Clinical"
+        defaultAuthor={clinicianContact.sentTo || "Clinical team"}
+        onAddNote={(note) => onAddConcernNote?.(concern.id, note)}
+      />
 
       <div className="journey-actions clinician-actions">
         <button

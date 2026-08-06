@@ -7,6 +7,50 @@
     font-weight: 500;
 }
 
+.journey-position-banner {
+    display: grid;
+    gap: 5px;
+    margin-bottom: 16px;
+    padding: 14px 16px;
+    border: 1px solid var(--position-colour);
+    border-left: 10px solid var(--position-colour);
+    border-radius: 8px;
+    background: var(--position-bg);
+}
+
+.journey-position-banner span {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.journey-position-banner strong {
+    color: var(--ink);
+    font-size: 1.05rem;
+}
+
+.journey-position-banner p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.4;
+}
+
+.patient-position-banner {
+    --position-colour: #c78390;
+    --position-bg: #fff3f5;
+}
+
+.clinician-position-banner {
+    --position-colour: #4e93a0;
+    --position-bg: #e7f3f4;
+}
+
+.admin-position-banner {
+    --position-colour: #7b5c88;
+    --position-bg: #fbf7fd;
+}
+
 /* fatigue-proof palette */
 .badge-yellow {
     background: #f7e27b;
@@ -44,6 +88,46 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 0 12px;
+}
+
+.concern-list-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+    padding: 16px 18px;
+    border: 1px solid var(--line);
+    border-left: 8px solid var(--seasonal-accent);
+    border-radius: 8px;
+    background: var(--surface-strong);
+}
+
+.concern-list-header h2 {
+    margin: 0;
+    color: var(--plum);
+}
+
+.today-marker {
+    display: grid;
+    gap: 4px;
+    min-width: 190px;
+    padding: 10px 12px;
+    border: 1px solid #d8c8c0;
+    border-radius: 8px;
+    background: #fffaf4;
+    text-align: right;
+}
+
+.today-marker span {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.today-marker strong {
+    color: var(--ink);
 }
 
 .concern-list th,
@@ -181,6 +265,159 @@
     margin: 0;
     color: var(--ink);
     line-height: 1.45;
+}
+
+.communication-journey {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid #c7dfd9;
+    border-left: 6px solid #7ea889;
+    border-radius: 8px;
+    background: #f1f8f3;
+}
+
+.communication-journey > strong {
+    color: #456d50;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+}
+
+.communication-journey dl {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    gap: 8px;
+    margin: 0;
+}
+
+.communication-journey div {
+    display: grid;
+    gap: 3px;
+}
+
+.communication-journey dt {
+    color: #456d50;
+    font-size: 0.68rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.communication-journey dd {
+    margin: 0;
+    color: var(--ink);
+    line-height: 1.35;
+}
+
+.communication-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.note-timeline {
+    display: grid;
+    gap: 10px;
+    margin-top: 12px;
+    padding: 12px;
+    border: 1px solid #d8c8c0;
+    border-radius: 8px;
+    background: #fffdf8;
+}
+
+.note-timeline > strong {
+    color: var(--plum);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+}
+
+.note-timeline ol {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.typed-note {
+    display: grid;
+    gap: 4px;
+    padding: 10px;
+    border: 1px solid var(--note-colour);
+    border-left: 6px solid var(--note-colour);
+    border-radius: 8px;
+    background: var(--note-bg);
+}
+
+.typed-note span {
+    width: fit-content;
+    padding: 3px 7px;
+    border-radius: 999px;
+    background: var(--note-colour);
+    color: #ffffff;
+    font-size: 0.68rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.typed-note p {
+    margin: 0;
+    color: var(--ink);
+    line-height: 1.4;
+}
+
+.typed-note small,
+.empty-note-state {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.35;
+}
+
+.note-administrative {
+    --note-colour: #7b5c88;
+    --note-bg: #fbf7fd;
+}
+
+.note-clinical {
+    --note-colour: #4e93a0;
+    --note-bg: #e7f3f4;
+}
+
+.note-communication {
+    --note-colour: #7ea889;
+    --note-bg: #f1f8f3;
+}
+
+.note-patient-concern {
+    --note-colour: #c78390;
+    --note-bg: #fff3f5;
+}
+
+.note-internal-reminder {
+    --note-colour: #c8a25d;
+    --note-bg: #fff8e7;
+}
+
+.note-composer {
+    display: grid;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid #d8c8c0;
+}
+
+.note-composer-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(120px, 1fr));
+    gap: 8px;
+}
+
+.note-composer label {
+    display: grid;
+    gap: 5px;
+    color: var(--plum);
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
 }
 
 .triage-summary {
@@ -649,6 +886,369 @@
     background: #4e93a0;
 }
 
+.admin-dashboard {
+    display: grid;
+    gap: 22px;
+}
+
+.admin-header {
+    display: grid;
+    grid-template-columns: minmax(280px, 1fr) minmax(260px, 420px);
+    gap: 18px;
+    align-items: center;
+    padding: 22px;
+    border: 1px solid #d0b7d8;
+    border-left: 10px solid #7b5c88;
+    border-radius: 8px;
+    background: #fbf7fd;
+}
+
+.admin-header h2 {
+    margin: 0;
+    color: var(--plum);
+    font-size: 1.45rem;
+}
+
+.admin-header p {
+    max-width: 760px;
+    margin: 8px 0 0;
+    color: var(--muted);
+    line-height: 1.5;
+}
+
+.admin-pathway-links {
+    display: grid;
+    gap: 10px;
+}
+
+.admin-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 48px;
+    padding: 10px 14px;
+    border-radius: 6px;
+    color: #ffffff;
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.patient-pathway {
+    background: #c78390;
+}
+
+.clinician-pathway {
+    background: #4e93a0;
+}
+
+.slot-pathway {
+    background: #c8a25d;
+}
+
+.admin-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.admin-waymark-strip {
+    padding: 16px;
+    border: 1px solid #d0b7d8;
+    border-radius: 8px;
+    background: #fffdf8;
+}
+
+.admin-waymark-strip > strong {
+    display: block;
+    margin-bottom: 12px;
+    color: var(--plum);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+}
+
+.admin-waymark-strip ol {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(120px, 1fr));
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.admin-waymark-strip li {
+    min-height: 72px;
+    padding: 10px;
+    border: 1px solid var(--admin-waymark-colour);
+    border-left: 8px solid var(--admin-waymark-colour);
+    border-radius: 8px;
+    background: var(--admin-waymark-bg);
+    color: var(--ink);
+    font-weight: 900;
+}
+
+.admin-waymark-strip li span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    margin-right: 8px;
+    border-radius: 50%;
+    background: var(--admin-waymark-colour);
+    color: #ffffff;
+}
+
+.admin-monitor {
+    --admin-waymark-colour: #7b5c88;
+    --admin-waymark-bg: #fbf7fd;
+}
+
+.admin-clarify {
+    --admin-waymark-colour: #c78390;
+    --admin-waymark-bg: #fff3f5;
+}
+
+.admin-coordinate {
+    --admin-waymark-colour: #c8a25d;
+    --admin-waymark-bg: #fff8e7;
+}
+
+.admin-communicate {
+    --admin-waymark-colour: #4e93a0;
+    --admin-waymark-bg: #e7f3f4;
+}
+
+.admin-resolve {
+    --admin-waymark-colour: #7ea889;
+    --admin-waymark-bg: #eaf4ec;
+}
+
+.admin-summary-tile {
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: var(--surface-strong);
+}
+
+.admin-summary-tile span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.admin-summary-tile strong {
+    display: block;
+    margin-top: 8px;
+    color: var(--plum);
+    font-size: 2rem;
+}
+
+.admin-grid {
+    display: grid;
+    grid-template-columns: minmax(320px, 1.15fr) minmax(280px, 0.85fr);
+    gap: 18px;
+}
+
+.admin-panel {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: rgba(251, 247, 240, 0.92);
+    box-shadow: 0 14px 30px rgba(83, 64, 57, 0.07);
+}
+
+.admin-panel h3 {
+    margin: 0;
+    color: var(--plum);
+}
+
+.admin-task-list,
+.admin-list {
+    display: grid;
+    gap: 10px;
+}
+
+.admin-task-card,
+.admin-list-item {
+    display: grid;
+    gap: 6px;
+    padding: 12px;
+    border: 1px solid #d8c8c0;
+    border-left: 6px solid #7b5c88;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.admin-task-card strong,
+.admin-list-item strong {
+    color: var(--ink);
+}
+
+.admin-task-card p,
+.admin-list-item span,
+.admin-list-item small {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.4;
+}
+
+.admin-task-routing {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(120px, 1fr));
+    gap: 8px;
+    margin: 4px 0;
+    padding: 10px;
+    border-radius: 6px;
+    background: #f7f1eb;
+}
+
+.admin-task-routing div {
+    display: grid;
+    gap: 3px;
+}
+
+.admin-task-routing dt {
+    color: var(--plum);
+    font-size: 0.68rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.admin-task-routing dd {
+    margin: 0;
+    color: var(--ink);
+    font-size: 0.82rem;
+    line-height: 1.35;
+}
+
+.admin-task-priority {
+    justify-self: start;
+    padding: 4px 8px;
+    border-radius: 999px;
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.admin-task-priority.review {
+    background: #c78390;
+}
+
+.admin-task-priority.clarify,
+.admin-task-priority.query {
+    background: #7b5c88;
+}
+
+.admin-task-priority.slot {
+    background: #c8a25d;
+}
+
+.admin-task-priority.contact {
+    background: #4e93a0;
+}
+
+.admin-task-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.admin-task-actions .action-button,
+.admin-list-item .action-button {
+    width: fit-content;
+    text-decoration: none;
+}
+
+.admin-rule-item {
+    border-left-color: #4e93a0;
+}
+
+.admin-practice-panel {
+    display: grid;
+    gap: 12px;
+}
+
+.admin-practice-panel p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.45;
+}
+
+.admin-activity-log {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid #d0b7d8;
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.admin-activity-log strong {
+    color: var(--plum);
+}
+
+.admin-activity-log ol {
+    display: grid;
+    gap: 7px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.admin-activity-log li {
+    display: grid;
+    gap: 2px;
+    color: var(--ink);
+    line-height: 1.35;
+}
+
+.admin-activity-log li span {
+    color: var(--muted);
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+
+.appointment-update-panel {
+    display: grid;
+    gap: 10px;
+    margin-top: 8px;
+    padding: 12px;
+    border: 1px solid #e0cfb0;
+    border-radius: 8px;
+    background: #fff8e7;
+}
+
+.appointment-update-panel > strong {
+    color: #7d6030;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+}
+
+.appointment-update-panel small {
+    color: #6f6252;
+}
+
+.appointment-update-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(140px, 1fr));
+    gap: 10px;
+}
+
+.appointment-update-grid label {
+    display: grid;
+    gap: 5px;
+    color: #7d6030;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
 @media (max-width: 900px) {
     .concern-list table,
     .concern-list thead,
@@ -720,6 +1320,16 @@
         content: "Next Step";
     }
 
+    .concern-list-header {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .today-marker {
+        min-width: 0;
+        text-align: left;
+    }
+
     .clinician-card-main,
     .clinician-waymarks {
         grid-template-columns: 1fr;
@@ -733,8 +1343,30 @@
         grid-template-columns: 1fr;
     }
 
+    .communication-journey dl {
+        grid-template-columns: 1fr;
+    }
+
+    .note-composer-grid {
+        grid-template-columns: 1fr;
+    }
+
     .clinician-actions {
         flex-direction: column;
         align-items: stretch;
+    }
+
+    .admin-header,
+    .admin-waymark-strip ol,
+    .admin-summary-grid,
+    .admin-grid,
+    .admin-task-routing,
+    .appointment-update-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-task-actions .action-button,
+    .admin-list-item .action-button {
+        width: 100%;
     }
 }

@@ -1,6 +1,8 @@
 import NextStepButton from "./NextStepButton";
 import StatusBadge from "./StatusBadge";
 import TriageSummary from "./TriageSummary";
+import CommunicationJourney from "../communication/CommunicationJourney";
+import NoteTimeline from "../notes/NoteTimeline";
 import {
   CONCERN_STATUSES,
   PATIENT_JOURNEY_COLOR_CLASSES,
@@ -12,12 +14,46 @@ import {
 } from "./concernJourney";
 import { buildPatientScript } from "./patientScript";
 
-function ConcernRow({ concern, onAdvanceConcern }) {
+function ConcernRow({ concern, onAdvanceConcern, onUpdateConcern, onAddConcernNote, formatDate }) {
   const currentStep = getConcernStepNumber(concern.status);
   const patientJourneyStep = getPatientJourneyStepNumber(concern.status);
   const patientJourneyStage = getPatientJourneyStage(concern.status);
   const staffScript = concern.staffScript || buildPatientScript(concern);
   const statusClass = STATUS_COLOR_CLASSES[concern.status] || "badge-grey";
+  const markPatientInformed = () => {
+    onUpdateConcern?.(concern.id, {
+      patientContactStatus: "Patient communication recorded",
+      communication: {
+        ...concern.communication,
+        patientInformed: true,
+        by: concern.communication?.by || "Care Navigation Team",
+        channel:
+          concern.communication?.channel ||
+          (concern.confirmationMethod && concern.confirmationMethod !== "Not confirmed"
+            ? concern.confirmationMethod
+            : "Phone"),
+        at: new Date().toISOString(),
+        confirmationOutstanding: false,
+      },
+    });
+  };
+  const markConfirmationOutstanding = () => {
+    onUpdateConcern?.(concern.id, {
+      patientContactStatus: "Confirmation outstanding",
+      communication: {
+        ...concern.communication,
+        patientInformed: Boolean(concern.communication?.patientInformed),
+        by: concern.communication?.by || "Care Navigation Team",
+        channel:
+          concern.communication?.channel ||
+          (concern.confirmationMethod && concern.confirmationMethod !== "Not confirmed"
+            ? concern.confirmationMethod
+            : "Phone"),
+        at: concern.communication?.at || new Date().toISOString(),
+        confirmationOutstanding: true,
+      },
+    });
+  };
 
   return (
     <tr className={`concern-row row-${statusClass}`}>
@@ -36,6 +72,10 @@ function ConcernRow({ concern, onAdvanceConcern }) {
             <dt>Confirmed by</dt>
             <dd>{concern.confirmationMethod || "Not confirmed"}</dd>
           </div>
+          <div>
+            <dt>Concern recorded</dt>
+            <dd>{formatDate ? formatDate(concern.createdAt) : concern.createdAt || "Date not recorded"}</dd>
+          </div>
         </dl>
       </td>
       <td>
@@ -46,6 +86,19 @@ function ConcernRow({ concern, onAdvanceConcern }) {
           <strong>Staff script</strong>
           <p>{staffScript}</p>
         </div>
+        <CommunicationJourney
+          stage={concern.status}
+          communication={concern.communication}
+          fallbackChannel={concern.confirmationMethod}
+          onMarkInformed={markPatientInformed}
+          onMarkOutstanding={markConfirmationOutstanding}
+        />
+        <NoteTimeline
+          notes={concern.notes}
+          title="Concern Notes"
+          defaultType="Patient concern"
+          onAddNote={(note) => onAddConcernNote?.(concern.id, note)}
+        />
       </td>
       <td>
         <TriageSummary triage={concern.triage} />

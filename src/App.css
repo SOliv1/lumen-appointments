@@ -168,6 +168,212 @@ textarea {
   font-weight: 900;
 }
 
+.journey-start {
+  display: grid;
+  gap: 22px;
+}
+
+.journey-start-header {
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-left: 10px solid var(--seasonal-accent);
+  border-radius: 8px;
+  background: var(--surface-strong);
+  text-align: center;
+}
+
+.journey-start-header h2 {
+  margin: 0;
+  color: var(--plum);
+  font-size: 1.8rem;
+}
+
+.journey-start-header p:last-child {
+  max-width: 760px;
+  margin: 10px auto 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.journey-start-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 18px;
+}
+
+.practice-controls {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) minmax(220px, 320px) minmax(260px, 380px);
+  gap: 18px;
+  align-items: start;
+  padding: 18px;
+  border: 1px solid #d0b7d8;
+  border-left: 10px solid var(--plum);
+  border-radius: 8px;
+  background: #fbf7fd;
+}
+
+.practice-controls h3 {
+  margin: 0;
+  color: var(--plum);
+}
+
+.practice-controls p {
+  margin: 8px 0 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.practice-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.practice-log {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #d0b7d8;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.practice-log strong {
+  color: var(--plum);
+}
+
+.practice-log ol {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.practice-log li {
+  display: grid;
+  gap: 2px;
+  color: var(--ink);
+  line-height: 1.35;
+}
+
+.practice-log li span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.guided-walkthrough {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border: 1px solid #c7dfd9;
+  border-left: 10px solid var(--green);
+  border-radius: 8px;
+  background: #f1f8f3;
+}
+
+.guided-walkthrough-header h3 {
+  margin: 0;
+  color: var(--plum);
+}
+
+.guided-walkthrough ol {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(220px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.guided-walkthrough li {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid #c7dfd9;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.guided-walkthrough li > span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--green);
+  color: #ffffff;
+  font-weight: 900;
+}
+
+.guided-walkthrough strong {
+  color: var(--ink);
+}
+
+.guided-walkthrough p {
+  margin: 5px 0;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.guided-walkthrough small {
+  color: #456d50;
+  line-height: 1.35;
+}
+
+.journey-start-card {
+  display: grid;
+  gap: 12px;
+  min-height: 320px;
+  padding: 22px;
+  border: 1px solid var(--pathway-colour);
+  border-top: 10px solid var(--pathway-colour);
+  border-radius: 8px;
+  background: #ffffff;
+  color: var(--ink);
+  text-decoration: none;
+  box-shadow: 0 16px 34px rgba(83, 64, 57, 0.08);
+}
+
+.journey-start-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 38px rgba(83, 64, 57, 0.12);
+}
+
+.journey-start-card strong {
+  color: var(--plum);
+  font-size: 1.25rem;
+}
+
+.journey-start-card span {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.journey-start-card ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--ink);
+  line-height: 1.45;
+}
+
+.patient-start-card {
+  --pathway-colour: var(--rose);
+}
+
+.clinician-start-card {
+  --pathway-colour: var(--teal);
+}
+
+.admin-start-card {
+  --pathway-colour: var(--plum);
+}
+
 .app-footer {
   width: min(1180px, calc(100% - 32px));
   margin: 0 auto;
@@ -359,6 +565,16 @@ textarea:focus {
   color: #9a5b59;
 }
 
+.status-changed {
+  background: #fbefd8;
+  color: #8a6231;
+}
+
+.status-cancelled {
+  background: #f5e3df;
+  color: #9a5b59;
+}
+
 .stacked-panels {
   display: grid;
   gap: 24px;
@@ -426,6 +642,22 @@ textarea:focus {
     width: 100%;
     min-height: 58px;
     font-size: 1.06rem;
+  }
+
+  .journey-start-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .practice-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .guided-walkthrough ol {
+    grid-template-columns: 1fr;
+  }
+
+  .journey-start-card {
+    min-height: 0;
   }
 
   .page-grid,

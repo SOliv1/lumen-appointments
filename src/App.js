@@ -5,6 +5,8 @@ import "./styles/concern.css";
 import ConcernList from "./concern/ConcernList";
 import NewConcern from "./concern/NewConcern";
 import ClinicianQueue from "./clinician/ClinicianQueue";
+import AdminDashboard from "./admin/AdminDashboard";
+import JourneyStart from "./JourneyStart";
 import { buildPatientScript } from "./concern/patientScript";
 import initialAppointments from "./mockups/appointments.json";
 import initialAvailability from "./mockups/availability.json";
@@ -16,9 +18,11 @@ const ROUTES = {
   CLINICIANS: "/clinicians",
   AVAILABILITY: "/availability",
   APPOINTMENTS: "/appointments",
+  JOURNEY_START: "/journey/start",
   NEW_CONCERN: "/concern/new",
   CONCERNS: "/concerns",
   CLINICIAN_QUEUE: "/clinician-queue",
+  ADMINISTRATION: "/administration",
 };
 
 const makeId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
@@ -365,6 +369,8 @@ const INITIAL_MOCK_APPOINTMENTS = [
     reason: "Chest discomfort follow-up",
     patientMessage: "The request is recorded as Chest discomfort. Staff can confirm the recorded reason, current appointment time, and that clinical staff will review the concern.",
     confirmationMethod: "Phone",
+    status: "Changed",
+    previousTime: "11:00",
   },
   {
     id: "appt-demo-3",
@@ -375,6 +381,18 @@ const INITIAL_MOCK_APPOINTMENTS = [
     reason: "Low mood review",
     patientMessage: "The request is recorded as Low mood. Staff can confirm the recorded reason and that the concern is being handled through the care journey.",
     confirmationMethod: "Email",
+    status: "Booked",
+  },
+  {
+    id: "appt-demo-4",
+    patientId: "mock-patient-7",
+    clinicianId: "mock-clinician-5",
+    date: getTodayIsoDate(),
+    time: "11:00",
+    reason: "Appointment time clarification",
+    patientMessage: "The appointment was cancelled and the patient needs clear confirmation of the current plan.",
+    confirmationMethod: "Phone",
+    status: "Cancelled",
   },
 ];
 
@@ -392,12 +410,49 @@ const formatUkDate = (isoDate) => {
   return year && month && day ? `${day}/${month}/${year}` : isoDate;
 };
 
+const buildInitialConcernNotes = (concern) => [
+  {
+    id: `${concern.id}-patient-concern-note`,
+    type: "Patient concern",
+    text: concern.description || "Concern recorded",
+    author: "Care Navigation Team",
+    visibility: "Internal",
+    createdAt: concern.createdAt || new Date().toISOString(),
+  },
+  {
+    id: `${concern.id}-admin-note`,
+    type: "Administrative",
+    text: concern.triage?.note || concern.patientMessage || "Administrative context recorded.",
+    author: "Care Navigation Team",
+    visibility: "Internal",
+    createdAt: concern.createdAt || new Date().toISOString(),
+  },
+];
+
+const buildInitialAppointmentNotes = (appointment) => [
+  {
+    id: `${appointment.id}-appointment-note`,
+    type: "Administrative",
+    text: appointment.reason || "Appointment record created.",
+    author: "Care Navigation Team",
+    visibility: "Internal",
+    createdAt: appointment.createdAt || new Date().toISOString(),
+  },
+];
+
 function App() {
   const [patients, setPatients] = useState([...initialPatients, ...EXTRA_MOCK_PATIENTS]);
   const [clinicians, setClinicians] = useState([...initialClinicians, ...EXTRA_MOCK_CLINICIANS]);
   const [availability, setAvailability] = useState(INITIAL_MOCK_AVAILABILITY);
   const [appointments, setAppointments] = useState(INITIAL_MOCK_APPOINTMENTS);
   const [concerns, setConcerns] = useState(INITIAL_MOCK_CONCERNS);
+  const [activityLog, setActivityLog] = useState([
+    {
+      id: "practice-log-start",
+      at: new Date().toISOString(),
+      text: "Practice board loaded with mock patients, clinicians, slots, appointments and concerns.",
+    },
+  ]);
 
   const patientLookup = useMemo(
     () => Object.fromEntries(patients.map((patient) => [patient.id, patient])),
@@ -412,8 +467,18 @@ function App() {
       concerns.map((concern) => ({
         ...concern,
         patientName: patientLookup[concern.patientId]?.name || concern.patientId,
+        notes: concern.notes || buildInitialConcernNotes(concern),
       })),
     [concerns, patientLookup]
+  );
+  const appointmentListItems = useMemo(
+    () =>
+      appointments.map((appointment) => ({
+        ...appointment,
+        patientName: patientLookup[appointment.patientId]?.name || appointment.patientId,
+        notes: appointment.notes || buildInitialAppointmentNotes(appointment),
+      })),
+    [appointments, patientLookup]
   );
 
   const updateConcernJourney = (id, changes) => {
@@ -422,6 +487,70 @@ function App() {
         concern.id === id ? { ...concern, ...changes } : concern
       )
     );
+    recordPracticeEvent(`Concern ${id} updated.`);
+  };
+
+  const updateAppointmentMovement = (id, changes) => {
+    setAppointments((currentAppointments) =>
+      currentAppointments.map((appointment) =>
+        appointment.id === id ? { ...appointment, ...changes } : appointment
+      )
+    );
+    recordPracticeEvent(`Appointment ${id} updated.`);
+  };
+
+  const addConcernNote = (id, note) => {
+    const existingConcern = concerns.find((concern) => concern.id === id);
+    const currentNotes = existingConcern?.notes || buildInitialConcernNotes(existingConcern || { id });
+
+    updateConcernJourney(id, {
+      notes: [
+        {
+          ...note,
+          id: note.id || makeId("note"),
+        },
+        ...currentNotes,
+      ],
+    });
+    recordPracticeEvent(`${note.type} note added to concern ${id}.`);
+  };
+
+  const addAppointmentNote = (id, note) => {
+    const existingAppointment = appointments.find((appointment) => appointment.id === id);
+    const currentNotes = existingAppointment?.notes || buildInitialAppointmentNotes(existingAppointment || { id });
+
+    updateAppointmentMovement(id, {
+      notes: [
+        {
+          ...note,
+          id: note.id || makeId("note"),
+        },
+        ...currentNotes,
+      ],
+    });
+    recordPracticeEvent(`${note.type} note added to appointment ${id}.`);
+  };
+
+  const recordPracticeEvent = (text) => {
+    setActivityLog((currentLog) => [
+      { id: makeId("log"), at: new Date().toISOString(), text },
+      ...currentLog,
+    ].slice(0, 12));
+  };
+
+  const resetPracticeBoard = () => {
+    setPatients([...initialPatients, ...EXTRA_MOCK_PATIENTS]);
+    setClinicians([...initialClinicians, ...EXTRA_MOCK_CLINICIANS]);
+    setAvailability(INITIAL_MOCK_AVAILABILITY);
+    setAppointments(INITIAL_MOCK_APPOINTMENTS);
+    setConcerns(INITIAL_MOCK_CONCERNS);
+    setActivityLog([
+      {
+        id: makeId("log"),
+        at: new Date().toISOString(),
+        text: "Practice board reset to the original mock scenario.",
+      },
+    ]);
   };
 
   const matchConcernJourneyToSlot = (concern) => {
@@ -449,6 +578,24 @@ function App() {
       patientMessage: concern.patientMessage,
       staffScript: concern.staffScript,
       confirmationMethod: "System matched slot",
+      patientCommunicationNeeded: true,
+      communication: {
+        patientInformed: false,
+        by: "",
+        channel: "System matched slot",
+        at: "",
+        confirmationOutstanding: true,
+      },
+      notes: [
+        {
+          id: makeId("note"),
+          type: "Administrative",
+          text: `Matched to ${getSlotStartTime(matchedSlot)} slot for ${concern.description}.`,
+          author: "Care Navigation Team",
+          visibility: "Internal",
+          createdAt: new Date().toISOString(),
+        },
+      ],
     };
 
     setAppointments((currentAppointments) => [...currentAppointments, appointment]);
@@ -482,6 +629,24 @@ function App() {
       patientMessage: concern.patientMessage,
       staffScript: concern.staffScript,
       confirmationMethod: "System matched slot",
+      patientCommunicationNeeded: true,
+      communication: {
+        patientInformed: false,
+        by: "",
+        channel: "System matched slot",
+        at: "",
+        confirmationOutstanding: true,
+      },
+      notes: [
+        {
+          id: makeId("note"),
+          type: "Administrative",
+          text: `Confirmed matched slot at ${getSlotStartTime(matchedSlot)} for ${concern.description}.`,
+          author: "Care Navigation Team",
+          visibility: "Internal",
+          createdAt: new Date().toISOString(),
+        },
+      ],
     };
 
     setAppointments((currentAppointments) => [...currentAppointments, appointment]);
@@ -536,6 +701,87 @@ function App() {
     }
   };
 
+  const runNextPracticeStep = () => {
+    const needsInfoConcern = concerns.find((concern) => concern.status === "Needs Information");
+
+    if (needsInfoConcern) {
+      updateConcernJourney(needsInfoConcern.id, {
+        status: "Ready for Triage",
+        clarificationStatus: "Information recorded during practice",
+        patientContactStatus: "Clarification communication recorded",
+      });
+      recordPracticeEvent(`${patientLookup[needsInfoConcern.patientId]?.name || needsInfoConcern.patientId} moved from clarification to triage-ready.`);
+      return;
+    }
+
+    const awaitingReviewConcern = concerns.find((concern) => concern.status === "Awaiting Review");
+
+    if (awaitingReviewConcern) {
+      advanceConcernJourney(awaitingReviewConcern.id, "triage");
+      recordPracticeEvent(`${patientLookup[awaitingReviewConcern.patientId]?.name || awaitingReviewConcern.patientId} reviewed by admin and marked ready for triage.`);
+      return;
+    }
+
+    const readyForTriageConcern = concerns.find((concern) => concern.status === "Ready for Triage");
+
+    if (readyForTriageConcern) {
+      advanceConcernJourney(readyForTriageConcern.id, "review");
+      recordPracticeEvent(`${patientLookup[readyForTriageConcern.patientId]?.name || readyForTriageConcern.patientId} triage review completed in practice.`);
+      return;
+    }
+
+    const appointmentRequiredConcern = concerns.find((concern) => concern.status === "Appointment Required");
+
+    if (appointmentRequiredConcern) {
+      advanceConcernJourney(appointmentRequiredConcern.id, "match");
+      recordPracticeEvent(`${patientLookup[appointmentRequiredConcern.patientId]?.name || appointmentRequiredConcern.patientId} matched to the next available slot.`);
+      return;
+    }
+
+    const appointmentNeedingContact = appointments.find((appointment) => appointment.patientCommunicationNeeded);
+
+    if (appointmentNeedingContact) {
+      updateAppointmentMovement(appointmentNeedingContact.id, {
+        patientCommunicationNeeded: false,
+        adminUpdateNote: "Patient communication recorded during practice",
+        communication: {
+          ...appointmentNeedingContact.communication,
+          patientInformed: true,
+          by: "Care Navigation Team",
+          channel: appointmentNeedingContact.confirmationMethod || "Phone",
+          at: new Date().toISOString(),
+          confirmationOutstanding: false,
+        },
+      });
+      recordPracticeEvent(`${patientLookup[appointmentNeedingContact.patientId]?.name || appointmentNeedingContact.patientId} appointment communication recorded.`);
+      return;
+    }
+
+    const bookedConcern = concerns.find(
+      (concern) =>
+        concern.status === "Appointment Booked" &&
+        concern.patientContactStatus !== "Patient communication recorded"
+    );
+
+    if (bookedConcern) {
+      updateConcernJourney(bookedConcern.id, {
+        patientContactStatus: "Patient communication recorded",
+        communication: {
+          ...bookedConcern.communication,
+          patientInformed: true,
+          by: "Care Navigation Team",
+          channel: bookedConcern.confirmationMethod || "Phone",
+          at: new Date().toISOString(),
+          confirmationOutstanding: false,
+        },
+      });
+      recordPracticeEvent(`${patientLookup[bookedConcern.patientId]?.name || bookedConcern.patientId} patient communication recorded.`);
+      return;
+    }
+
+    recordPracticeEvent("No urgent practice step is waiting. The board is stable.");
+  };
+
   const addConcern = (concern) => {
     setConcerns((currentConcerns) => [
       ...currentConcerns,
@@ -571,6 +817,31 @@ function App() {
           queryStatus: "No clarification requested",
         },
         clinicalNote: concern.clinicalNote || "",
+        communication: concern.communication || {
+          patientInformed: false,
+          by: "",
+          channel: concern.confirmationMethod || "Not confirmed",
+          at: "",
+          confirmationOutstanding: true,
+        },
+        notes: concern.notes || [
+          {
+            id: makeId("note"),
+            type: "Patient concern",
+            text: concern.description || "Concern recorded.",
+            author: "Care Navigation Team",
+            visibility: "Internal",
+            createdAt: new Date().toISOString(),
+          },
+          {
+            id: makeId("note"),
+            type: "Communication",
+            text: concern.patientMessage || "Patient-facing factual note drafted.",
+            author: "Care Navigation Team",
+            visibility: "Patient-facing",
+            createdAt: new Date().toISOString(),
+          },
+        ],
         createdAt: concern.createdAt || new Date().toISOString(),
         matchedSlotId: concern.matchedSlotId || "",
         appointmentId: concern.appointmentId || "",
@@ -592,6 +863,9 @@ function App() {
       </header>
 
       <nav className="app-nav" aria-label="Primary navigation">
+        <NavLink to={ROUTES.JOURNEY_START} activeClassName="active">
+          Begin Care Journey
+        </NavLink>
         <NavLink to={ROUTES.PATIENTS} activeClassName="active">
           Patients
         </NavLink>
@@ -600,6 +874,9 @@ function App() {
         </NavLink>
         <NavLink to={ROUTES.CLINICIAN_QUEUE} activeClassName="active">
           Today's Care Queue
+        </NavLink>
+        <NavLink to={ROUTES.ADMINISTRATION} activeClassName="active">
+          Administration
         </NavLink>
         <NavLink to={ROUTES.AVAILABILITY} activeClassName="active">
           Availability
@@ -612,13 +889,20 @@ function App() {
       <main className="workspace">
         <Switch>
           <Route exact path="/">
-            <Redirect to={ROUTES.AVAILABILITY} />
+            <Redirect to={ROUTES.JOURNEY_START} />
           </Route>
           <Route path={ROUTES.PATIENTS}>
             <PatientsPage patients={patients} setPatients={setPatients} />
           </Route>
           <Route path={ROUTES.CLINICIANS}>
             <CliniciansPage clinicians={clinicians} setClinicians={setClinicians} />
+          </Route>
+          <Route path={ROUTES.JOURNEY_START}>
+            <JourneyStart
+              activityLog={activityLog}
+              onRunPracticeStep={runNextPracticeStep}
+              onResetPracticeBoard={resetPracticeBoard}
+            />
           </Route>
           <Route path={ROUTES.NEW_CONCERN}>
             <NewConcern
@@ -628,13 +912,36 @@ function App() {
             />
           </Route>
           <Route path={ROUTES.CONCERNS}>
-            <ConcernList concerns={concernListItems} onAdvanceConcern={advanceConcernJourney} />
+            <ConcernList
+              concerns={concernListItems}
+              onAdvanceConcern={advanceConcernJourney}
+              onUpdateConcern={updateConcernJourney}
+              onAddConcernNote={addConcernNote}
+            />
           </Route>
           <Route path={ROUTES.CLINICIAN_QUEUE}>
             <ClinicianQueue
               concerns={concernListItems}
               patientLookup={patientLookup}
               onUpdateClinicianJourney={updateConcernJourney}
+              onAddConcernNote={addConcernNote}
+            />
+          </Route>
+          <Route path={ROUTES.ADMINISTRATION}>
+            <AdminDashboard
+              concerns={concernListItems}
+              appointments={appointmentListItems}
+              availability={availability}
+              patientLookup={patientLookup}
+              clinicianLookup={clinicianLookup}
+              onAdvanceConcern={advanceConcernJourney}
+              onUpdateConcern={updateConcernJourney}
+              onUpdateAppointment={updateAppointmentMovement}
+              onAddConcernNote={addConcernNote}
+              onAddAppointmentNote={addAppointmentNote}
+              activityLog={activityLog}
+              onRunPracticeStep={runNextPracticeStep}
+              onResetPracticeBoard={resetPracticeBoard}
             />
           </Route>
           <Route path={ROUTES.AVAILABILITY}>
@@ -964,7 +1271,7 @@ function AvailabilityPage({ availability, setAvailability, clinicians, clinician
           <p className="command-kicker">Appointment journey</p>
           <h1>Availability</h1>
         </div>
-        <Link to={ROUTES.NEW_CONCERN} className="btn btn-concern command-button">
+        <Link to={ROUTES.JOURNEY_START} className="btn btn-concern command-button">
           Begin Care Journey
         </Link>
       </div>
