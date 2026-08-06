@@ -28,6 +28,14 @@
     background: #8fd4a3;
 }
 
+.badge-teal {
+    background: #7cc6c2;
+}
+
+.badge-gold {
+    background: #e3bf72;
+}
+
 .badge-grey {
     background: #d9d9d9;
 }
@@ -88,6 +96,14 @@
 
 .row-badge-green {
     --row-status-colour: #8fd4a3;
+}
+
+.row-badge-teal {
+    --row-status-colour: #7cc6c2;
+}
+
+.row-badge-gold {
+    --row-status-colour: #e3bf72;
 }
 
 .row-badge-grey {
@@ -212,6 +228,87 @@
     margin-top: 10px;
 }
 
+.patient-journey-strip {
+    margin-bottom: 12px;
+    padding: 12px;
+    border: 1px solid #d8c8c0;
+    border-radius: 6px;
+    background: #fffaf4;
+}
+
+.patient-journey-strip > strong {
+    display: block;
+    color: var(--plum);
+    font-size: 0.78rem;
+    text-transform: uppercase;
+}
+
+.patient-journey-waymarks {
+    display: grid;
+    gap: 6px;
+    margin: 10px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.patient-journey-waymark {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 0.8rem;
+}
+
+.patient-journey-waymark span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--journey-colour);
+    border-radius: 999px;
+    background: var(--field);
+    color: var(--ink);
+    font-size: 0.72rem;
+    font-weight: 900;
+}
+
+.patient-journey-waymark.complete,
+.patient-journey-waymark.current {
+    color: var(--ink);
+    font-weight: 800;
+}
+
+.patient-journey-waymark.complete span,
+.patient-journey-waymark.current span {
+    background: var(--journey-colour);
+    color: #ffffff;
+}
+
+.journey-concern {
+    --journey-colour: #c78390;
+}
+
+.journey-triage {
+    --journey-colour: #8bb8e8;
+}
+
+.journey-appointment {
+    --journey-colour: #8fd4a3;
+}
+
+.journey-treatment {
+    --journey-colour: #7cc6c2;
+}
+
+.journey-follow-up {
+    --journey-colour: #e3bf72;
+}
+
+.journey-closed {
+    --journey-colour: #9a9a9a;
+}
+
 .journey-progress {
     margin-top: 8px;
     color: var(--muted);
@@ -275,6 +372,18 @@
     min-width: 180px;
 }
 
+.internal-comms {
+    margin-bottom: 10px;
+    padding: 8px 10px;
+    border-left: 5px solid #4e93a0;
+    border-radius: 6px;
+    background: #e7f3f4;
+    color: #315f68;
+    font-size: 0.76rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
 .next-step-button,
 .previous-step-button {
     padding: 6px 12px;
@@ -316,6 +425,228 @@
 .create-button:hover {
     filter: brightness(0.97);
     transform: translateY(-1px);
+}
+
+.clinician-queue {
+    display: grid;
+    gap: 20px;
+}
+
+.queue-header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 18px 20px;
+    border-left: 8px solid #4e93a0;
+    background: #e7f3f4;
+}
+
+.queue-header h2 {
+    margin: 0;
+    color: var(--plum);
+}
+
+.queue-list {
+    display: grid;
+    gap: 18px;
+}
+
+.clinician-card {
+    display: grid;
+    gap: 16px;
+    padding: 18px;
+    border: 2px solid #b7d3d8;
+    border-left: 10px solid #4e93a0;
+    border-radius: 8px;
+    background: #ffffff;
+    box-shadow: 0 14px 28px rgba(78, 147, 160, 0.12);
+}
+
+.clinician-card-main {
+    display: grid;
+    grid-template-columns: minmax(220px, 1fr) minmax(260px, 420px);
+    gap: 18px;
+}
+
+.clinician-card h3 {
+    margin: 8px 0 4px;
+    color: var(--ink);
+}
+
+.clinician-card p {
+    margin: 0;
+    color: var(--muted);
+}
+
+.internal-pill {
+    display: inline-flex;
+    width: fit-content;
+    padding: 5px 9px;
+    border-radius: 999px;
+    background: #d7ecef;
+    color: #315f68;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.clinician-contact {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 12px;
+    border: 1px solid #b7d3d8;
+    border-radius: 8px;
+    background: #f5fbfb;
+}
+
+.clinician-contact div {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 10px;
+}
+
+.clinician-contact dt {
+    color: #315f68;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.clinician-contact dd {
+    margin: 0;
+    color: var(--ink);
+    font-weight: 700;
+}
+
+.handoff-panel {
+    padding: 12px;
+    border: 1px solid #d0b7d8;
+    border-left: 6px solid #7b5c88;
+    border-radius: 8px;
+    background: #fbf7fd;
+}
+
+.handoff-panel > strong {
+    display: block;
+    margin-bottom: 10px;
+    color: #5d4268;
+    font-size: 0.78rem;
+    text-transform: uppercase;
+}
+
+.handoff-panel dl {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(150px, 1fr));
+    gap: 10px;
+    margin: 0;
+}
+
+.handoff-panel div {
+    display: grid;
+    gap: 4px;
+}
+
+.handoff-panel dt {
+    color: #6e5a76;
+    font-size: 0.72rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.handoff-panel dd {
+    margin: 0;
+    color: var(--ink);
+    line-height: 1.35;
+}
+
+.clinician-waymark-panel {
+    padding: 12px;
+    border-radius: 8px;
+    background: #f7fbfb;
+    border: 1px solid #b7d3d8;
+}
+
+.clinician-progress {
+    margin-top: 4px;
+    color: #315f68;
+    font-weight: 800;
+}
+
+.clinician-waymarks {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(110px, 1fr));
+    gap: 8px;
+    margin: 12px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.clinician-waymark {
+    min-height: 86px;
+    padding: 10px;
+    border: 1px solid #b7d3d8;
+    border-radius: 8px;
+    background: #ffffff;
+    color: #5e7075;
+    font-weight: 800;
+}
+
+.clinician-waymark span {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    margin-bottom: 8px;
+    border-radius: 50%;
+    background: #e7f3f4;
+    color: #315f68;
+}
+
+.clinician-waymark.complete {
+    background: #edf7f2;
+    border-color: #8fbfa8;
+    color: #426d55;
+}
+
+.clinician-waymark.current {
+    background: #d7ecef;
+    border-color: #4e93a0;
+    color: #203f46;
+    box-shadow: inset 0 0 0 2px #4e93a0;
+}
+
+.clinical-note-field {
+    display: grid;
+    gap: 8px;
+    color: #315f68;
+    font-size: 0.8rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.clinical-note-field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    resize: vertical;
+    padding: 12px;
+    border: 1px solid #b7d3d8;
+    border-radius: 8px;
+    color: var(--ink);
+    font: inherit;
+    text-transform: none;
+}
+
+.clinician-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.internal-next-button {
+    background: #4e93a0;
 }
 
 @media (max-width: 900px) {
@@ -387,5 +718,23 @@
 
     .concern-list tbody td:nth-child(6)::before {
         content: "Next Step";
+    }
+
+    .clinician-card-main,
+    .clinician-waymarks {
+        grid-template-columns: 1fr;
+    }
+
+    .clinician-contact div {
+        grid-template-columns: 1fr;
+    }
+
+    .handoff-panel dl {
+        grid-template-columns: 1fr;
+    }
+
+    .clinician-actions {
+        flex-direction: column;
+        align-items: stretch;
     }
 }

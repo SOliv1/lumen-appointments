@@ -4,6 +4,7 @@ import "./App.css";
 import "./styles/concern.css";
 import ConcernList from "./concern/ConcernList";
 import NewConcern from "./concern/NewConcern";
+import ClinicianQueue from "./clinician/ClinicianQueue";
 import { buildPatientScript } from "./concern/patientScript";
 import initialAppointments from "./mockups/appointments.json";
 import initialAvailability from "./mockups/availability.json";
@@ -17,7 +18,7 @@ const ROUTES = {
   APPOINTMENTS: "/appointments",
   NEW_CONCERN: "/concern/new",
   CONCERNS: "/concerns",
-
+  CLINICIAN_QUEUE: "/clinician-queue",
 };
 
 const makeId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
@@ -188,13 +189,13 @@ const INITIAL_MOCK_CONCERNS = [
     confirmedTime: "15:30 PM",
     confirmationMethod: "Email",
     trigger: "email",
-    status: "Appointment Booked",
+    status: "Treatment",
     triage: {
       urgency: "Soon",
       route: "Clinical review clinic",
-      timeframe: "Booked today",
+      timeframe: "Treatment stage",
       redFlagCheck: "No red flag note recorded",
-      note: "Appointment has been booked; staff should confirm only the recorded time and purpose.",
+      note: "Treatment step is active; staff should keep patient-facing wording factual and recorded.",
     },
     matchedSlotId: "availability-demo-8",
     appointmentId: "appt-demo-3",
@@ -264,13 +265,13 @@ const INITIAL_MOCK_CONCERNS = [
     confirmedTime: "16:00 PM",
     confirmationMethod: "SMS",
     trigger: "phone",
-    status: "Closed",
+    status: "Follow-up",
     triage: {
       urgency: "Routine",
       route: "Medication support",
-      timeframe: "Closed",
+      timeframe: "Follow-up pending",
       redFlagCheck: "No red flag note recorded",
-      note: "Concern closed after administrative handling.",
+      note: "Follow-up stage is active before final closure.",
     },
     matchedSlotId: "",
     appointmentId: "",
@@ -521,6 +522,12 @@ function App() {
       case "confirm":
         confirmConcernJourney(concern);
         break;
+      case "treatment":
+        updateConcernJourney(id, { status: "Treatment" });
+        break;
+      case "follow-up":
+        updateConcernJourney(id, { status: "Follow-up" });
+        break;
       case "close":
         updateConcernJourney(id, { status: "Closed" });
         break;
@@ -553,6 +560,17 @@ function App() {
           redFlagCheck: "Not recorded",
           note: "Awaiting authorised triage.",
         },
+        clinicianStep: concern.clinicianStep || "Today's care queue",
+        clinicianContact: concern.clinicianContact || {
+          method: "Internal care queue",
+          sentTo: concern.triage?.route || "Unassigned clinician/team",
+          responseChannel: "Today's Care Queue",
+          notifiedBy: "Care Navigation Team",
+          clarificationContact: "Care Navigation Team",
+          escalationRoute: "Return to admin for clarification before clinical action",
+          queryStatus: "No clarification requested",
+        },
+        clinicalNote: concern.clinicalNote || "",
         createdAt: concern.createdAt || new Date().toISOString(),
         matchedSlotId: concern.matchedSlotId || "",
         appointmentId: concern.appointmentId || "",
@@ -579,6 +597,9 @@ function App() {
         </NavLink>
         <NavLink to={ROUTES.CLINICIANS} activeClassName="active">
           Clinicians
+        </NavLink>
+        <NavLink to={ROUTES.CLINICIAN_QUEUE} activeClassName="active">
+          Today's Care Queue
         </NavLink>
         <NavLink to={ROUTES.AVAILABILITY} activeClassName="active">
           Availability
@@ -608,6 +629,13 @@ function App() {
           </Route>
           <Route path={ROUTES.CONCERNS}>
             <ConcernList concerns={concernListItems} onAdvanceConcern={advanceConcernJourney} />
+          </Route>
+          <Route path={ROUTES.CLINICIAN_QUEUE}>
+            <ClinicianQueue
+              concerns={concernListItems}
+              patientLookup={patientLookup}
+              onUpdateClinicianJourney={updateConcernJourney}
+            />
           </Route>
           <Route path={ROUTES.AVAILABILITY}>
             <AvailabilityPage
