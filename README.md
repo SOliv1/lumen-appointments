@@ -1,6 +1,6 @@
 # SereneCare Sync
 
-This model Yes. 
+This model
 
  This should be treated as a **showcase and training prototype**. Its job is to help a healthcare administrator understand:
 
