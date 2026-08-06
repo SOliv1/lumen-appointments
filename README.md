@@ -1,6 +1,6 @@
 # SereneCare Sync
 
-This model
+This model View Live Demo [Here](https://serene-care-synchronicity.onrender.com/journey/start)
 
  This should be treated as a **showcase and training prototype**. Its job is to help a healthcare administrator understand:
 
