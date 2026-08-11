@@ -25,6 +25,43 @@ const ROUTES = {
   ADMINISTRATION: "/administration",
 };
 
+const SEASONAL_BANNERS = {
+  spring: {
+    label: "Spring",
+    image: "/lumenAppt-spring-banner.png",
+  },
+  summer: {
+    label: "Summer",
+    image: "/lumenAppt-summer-banner.png",
+  },
+  autumn: {
+    label: "Autumn",
+    image: "/lumenAppt-autumn-banner.png",
+  },
+  winter: {
+    label: "Winter",
+    image: "/lumenAppt-winter-banner.png",
+  },
+};
+
+const getCurrentSeasonBanner = (date = new Date()) => {
+  const month = date.getMonth();
+
+  if (month >= 2 && month <= 4) {
+    return SEASONAL_BANNERS.spring;
+  }
+
+  if (month >= 5 && month <= 7) {
+    return SEASONAL_BANNERS.summer;
+  }
+
+  if (month >= 8 && month <= 10) {
+    return SEASONAL_BANNERS.autumn;
+  }
+
+  return SEASONAL_BANNERS.winter;
+};
+
 const makeId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
 
 const TIME_OPTIONS = [
@@ -441,6 +478,7 @@ const buildInitialAppointmentNotes = (appointment) => [
 ];
 
 function App() {
+  const currentSeasonBanner = getCurrentSeasonBanner();
   const [patients, setPatients] = useState([...initialPatients, ...EXTRA_MOCK_PATIENTS]);
   const [clinicians, setClinicians] = useState([...initialClinicians, ...EXTRA_MOCK_CLINICIANS]);
   const [availability, setAvailability] = useState(INITIAL_MOCK_AVAILABILITY);
@@ -852,9 +890,13 @@ function App() {
   return (
     <div className="app-shell">
       <header className="hero">
-        <img src="/serenecare-banner.png" alt="" className="hero-image" />
+        <img
+          src={currentSeasonBanner.image}
+          alt={`${currentSeasonBanner.label} SereneCare Sync banner`}
+          className="hero-image"
+        />
         <div className="hero-content">
-          <p className="eyebrow">Seasonal care studio</p>
+          <p className="eyebrow">{currentSeasonBanner.label} care studio</p>
           <p>
             Coordinate patients, clinicians, availability and bookings inside a calm,
             seasonal workspace.
