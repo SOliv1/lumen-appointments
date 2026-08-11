@@ -1,6 +1,13 @@
 import { Link } from "react-router-dom";
 
-function JourneyStart({ activityLog = [], onRunPracticeStep, onResetPracticeBoard }) {
+function JourneyStart({
+  activityLog = [],
+  practiceLevelId,
+  practiceLevels = [],
+  onPracticeLevelChange,
+  onRunPracticeStep,
+  onResetPracticeBoard,
+}) {
   return (
     <section className="journey-start">
       <div className="journey-start-header">
@@ -15,6 +22,9 @@ function JourneyStart({ activityLog = [], onRunPracticeStep, onResetPracticeBoar
 
       <PracticeControls
         activityLog={activityLog}
+        practiceLevelId={practiceLevelId}
+        practiceLevels={practiceLevels}
+        onPracticeLevelChange={onPracticeLevelChange}
         onRunPracticeStep={onRunPracticeStep}
         onResetPracticeBoard={onResetPracticeBoard}
       />
@@ -116,17 +126,47 @@ function GuidedWalkthrough() {
   );
 }
 
-function PracticeControls({ activityLog, onRunPracticeStep, onResetPracticeBoard }) {
+function PracticeControls({
+  activityLog,
+  practiceLevelId,
+  practiceLevels,
+  onPracticeLevelChange,
+  onRunPracticeStep,
+  onResetPracticeBoard,
+}) {
+  const activeLevel = practiceLevels.find((level) => level.id === practiceLevelId) || practiceLevels[0];
+
   return (
     <section className="practice-controls">
       <div>
         <p className="command-kicker">Practice prototype</p>
-        <h3>Run the mock care system</h3>
+        <h3>Learn the appointment flow one level at a time</h3>
         <p>
-          Use the mock patients, clinicians, slots and appointments as a live
-          training board. Move one safe step at a time, or reset everything back
-          to the starting scenario.
+          Start with one appointment. When that feels familiar, move to 2, then
+          3, then 6, then the full board. Each level resets the mock data so you
+          can practise without carrying confusion forward.
         </p>
+        {activeLevel && <small className="practice-level-summary">{activeLevel.summary}</small>}
+      </div>
+      <div className="practice-level-panel">
+        <label htmlFor="practice-level">Practice level</label>
+        <select
+          id="practice-level"
+          value={practiceLevelId}
+          onChange={(event) => onPracticeLevelChange?.(event.target.value)}
+        >
+          {practiceLevels.map((level) => (
+            <option value={level.id} key={level.id}>
+              {level.label}
+            </option>
+          ))}
+        </select>
+        <ol>
+          <li>Choose a level.</li>
+          <li>Review Patients, Availability and Appointments.</li>
+          <li>Press Run next practice step to move one safe action forward.</li>
+          <li>Reset the level when you want a clean repeat.</li>
+        </ol>
       </div>
       <div className="practice-actions">
         <button type="button" className="btn btn-appointment" onClick={onRunPracticeStep}>

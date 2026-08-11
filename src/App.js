@@ -32,10 +32,49 @@ const DEFAULT_PATIENT_SORT = {
   order: "newest",
 };
 
+const LOGIN_STORAGE_KEY = "lumenAppointmentsSession";
+const DEMO_LOGIN = {
+  email: "demo@lumenappointments.local",
+  password: "lumen-demo",
+};
+
 const APP_SORT_OPTIONS = [
   { value: "nextAppointment", label: "Next Appointment" },
   { value: "registration", label: "Registration Date" },
   { value: "patientName", label: "Patient Name" },
+];
+
+const PRACTICE_LEVELS = [
+  {
+    id: "level-1",
+    label: "1 appointment",
+    appointmentCount: 1,
+    summary: "Master one patient, one clinician and one booking before adding more moving parts.",
+  },
+  {
+    id: "level-2",
+    label: "2 appointments",
+    appointmentCount: 2,
+    summary: "Compare two patients and practise reading the board without losing the first story.",
+  },
+  {
+    id: "level-3",
+    label: "3 appointments",
+    appointmentCount: 3,
+    summary: "Introduce a changed appointment and practise patient communication.",
+  },
+  {
+    id: "level-6",
+    label: "6 appointments",
+    appointmentCount: 6,
+    summary: "Work with a fuller day: booked, changed, cancelled and confirmation tasks.",
+  },
+  {
+    id: "full",
+    label: "Full board",
+    appointmentCount: null,
+    summary: "Run the whole practice board with all mock concerns, slots, appointments and tasks.",
+  },
 ];
 
 const SEASONAL_BANNERS = {
@@ -446,6 +485,34 @@ const INITIAL_MOCK_APPOINTMENTS = [
   },
 ];
 
+const EXTRA_PRACTICE_APPOINTMENTS = [
+  {
+    id: "appt-demo-5",
+    patientId: "mock-patient-3",
+    clinicianId: "mock-clinician-4",
+    date: getTodayIsoDate(),
+    time: "13:30",
+    reason: "Medication query follow-up",
+    patientMessage: "The request is recorded as Medication query. Staff can confirm the recorded reason and appointment status.",
+    confirmationMethod: "Portal",
+    status: "Booked",
+  },
+  {
+    id: "appt-demo-6",
+    patientId: "mock-patient-4",
+    clinicianId: "mock-clinician-7",
+    date: getTodayIsoDate(),
+    time: "16:00",
+    reason: "Shortness of breath review",
+    patientMessage: "The request is recorded as Shortness of breath. Staff can confirm the recorded reason and route to clinical review.",
+    confirmationMethod: "SMS",
+    status: "Booked",
+    patientCommunicationNeeded: true,
+  },
+];
+
+const ALL_PRACTICE_APPOINTMENTS = [...INITIAL_MOCK_APPOINTMENTS, ...EXTRA_PRACTICE_APPOINTMENTS];
+
 const getLaterTimeOptions = (time) => {
   const timeIndex = TIME_OPTIONS.indexOf(time);
   return TIME_OPTIONS.slice(timeIndex + 1);
@@ -503,20 +570,80 @@ const addRegistrationDates = (patientList) =>
   });
 
 const INITIAL_PATIENTS = addRegistrationDates([...initialPatients, ...EXTRA_MOCK_PATIENTS]);
+const getPracticeLevel = (levelId) =>
+  PRACTICE_LEVELS.find((level) => level.id === levelId) || PRACTICE_LEVELS[0];
+
+const syncAvailabilityWithAppointments = (availability, appointments) =>
+  availability.map((slot) => {
+    const isBooked = appointments.some(
+      (appointment) =>
+        appointment.date === slot.date && appointment.time === getSlotStartTime(slot)
+    );
+
+    return isBooked ? { ...slot, status: "Booked" } : slot;
+  });
+
+const buildPracticeScenario = (levelId) => {
+  const level = getPracticeLevel(levelId);
+
+  if (level.id === "full") {
+    return {
+      patients: INITIAL_PATIENTS,
+      clinicians: [...initialClinicians, ...EXTRA_MOCK_CLINICIANS],
+      availability: syncAvailabilityWithAppointments(INITIAL_MOCK_AVAILABILITY, ALL_PRACTICE_APPOINTMENTS),
+      appointments: ALL_PRACTICE_APPOINTMENTS,
+      concerns: INITIAL_MOCK_CONCERNS,
+    };
+  }
+
+  const appointments = ALL_PRACTICE_APPOINTMENTS.slice(0, level.appointmentCount);
+  const appointmentPatientIds = new Set(appointments.map((appointment) => appointment.patientId));
+  const appointmentClinicianIds = new Set(appointments.map((appointment) => appointment.clinicianId));
+  const concerns = INITIAL_MOCK_CONCERNS
+    .filter((concern) => appointmentPatientIds.has(concern.patientId))
+    .slice(0, level.appointmentCount);
+
+  return {
+    patients: INITIAL_PATIENTS.filter((patient) => appointmentPatientIds.has(patient.id)),
+    clinicians: [...initialClinicians, ...EXTRA_MOCK_CLINICIANS].filter((clinician) =>
+      appointmentClinicianIds.has(clinician.id)
+    ),
+    availability: syncAvailabilityWithAppointments(
+      INITIAL_MOCK_AVAILABILITY.filter(
+        (slot) =>
+          appointmentClinicianIds.has(slot.clinicianId) ||
+          appointments.some((appointment) => appointment.date === slot.date && appointment.time === getSlotStartTime(slot))
+      ),
+      appointments
+    ),
+    appointments,
+    concerns,
+  };
+};
 
 function App() {
   const currentSeasonBanner = getCurrentSeasonBanner();
-  const [patients, setPatients] = useState(INITIAL_PATIENTS);
-  const [clinicians, setClinicians] = useState([...initialClinicians, ...EXTRA_MOCK_CLINICIANS]);
-  const [availability, setAvailability] = useState(INITIAL_MOCK_AVAILABILITY);
-  const [appointments, setAppointments] = useState(INITIAL_MOCK_APPOINTMENTS);
-  const [concerns, setConcerns] = useState(INITIAL_MOCK_CONCERNS);
+  const [session, setSession] = useState(() => {
+    try {
+      const savedSession = window.localStorage.getItem(LOGIN_STORAGE_KEY);
+      return savedSession ? JSON.parse(savedSession) : null;
+    } catch (error) {
+      return null;
+    }
+  });
+  const [practiceLevelId, setPracticeLevelId] = useState("level-1");
+  const initialPracticeScenario = useMemo(() => buildPracticeScenario("level-1"), []);
+  const [patients, setPatients] = useState(initialPracticeScenario.patients);
+  const [clinicians, setClinicians] = useState(initialPracticeScenario.clinicians);
+  const [availability, setAvailability] = useState(initialPracticeScenario.availability);
+  const [appointments, setAppointments] = useState(initialPracticeScenario.appointments);
+  const [concerns, setConcerns] = useState(initialPracticeScenario.concerns);
   const [appSortBy, setAppSortBy] = useState("nextAppointment");
   const [activityLog, setActivityLog] = useState([
     {
       id: "practice-log-start",
       at: new Date().toISOString(),
-      text: "Practice board loaded with mock patients, clinicians, slots, appointments and concerns.",
+      text: "Practice Level 1 loaded: master one appointment from registration to confirmation.",
     },
   ]);
 
@@ -555,6 +682,39 @@ function App() {
 
     return registeredPatients[0]?.registeredAt;
   }, [patients]);
+
+  const handleLogin = (credentials) => {
+    const normalisedEmail = credentials.email.trim().toLowerCase();
+
+    if (normalisedEmail !== DEMO_LOGIN.email || credentials.password !== DEMO_LOGIN.password) {
+      return "Use the demo access details shown on this screen.";
+    }
+
+    const nextSession = {
+      email: normalisedEmail,
+      signedInAt: new Date().toISOString(),
+    };
+
+    setSession(nextSession);
+
+    try {
+      window.localStorage.setItem(LOGIN_STORAGE_KEY, JSON.stringify(nextSession));
+    } catch (error) {
+      // The prototype still works for this browser session when storage is unavailable.
+    }
+
+    return "";
+  };
+
+  const handleLogout = () => {
+    setSession(null);
+
+    try {
+      window.localStorage.removeItem(LOGIN_STORAGE_KEY);
+    } catch (error) {
+      // Nothing else is needed for the local prototype session.
+    }
+  };
 
   const updateConcernJourney = (id, changes) => {
     setConcerns((currentConcerns) =>
@@ -613,19 +773,31 @@ function App() {
     ].slice(0, 12));
   };
 
-  const resetPracticeBoard = () => {
-    setPatients(INITIAL_PATIENTS);
-    setClinicians([...initialClinicians, ...EXTRA_MOCK_CLINICIANS]);
-    setAvailability(INITIAL_MOCK_AVAILABILITY);
-    setAppointments(INITIAL_MOCK_APPOINTMENTS);
-    setConcerns(INITIAL_MOCK_CONCERNS);
+  const loadPracticeLevel = (levelId, reason = "loaded") => {
+    const level = getPracticeLevel(levelId);
+    const scenario = buildPracticeScenario(level.id);
+
+    setPracticeLevelId(level.id);
+    setPatients(scenario.patients);
+    setClinicians(scenario.clinicians);
+    setAvailability(scenario.availability);
+    setAppointments(scenario.appointments);
+    setConcerns(scenario.concerns);
     setActivityLog([
       {
         id: makeId("log"),
         at: new Date().toISOString(),
-        text: "Practice board reset to the original mock scenario.",
+        text: `${level.label} ${reason}: ${level.summary}`,
       },
     ]);
+  };
+
+  const resetPracticeBoard = () => {
+    loadPracticeLevel(practiceLevelId, "reset");
+  };
+
+  const changePracticeLevel = (levelId) => {
+    loadPracticeLevel(levelId, "loaded");
   };
 
   const matchConcernJourneyToSlot = (concern) => {
@@ -924,6 +1096,16 @@ function App() {
     ]);
   };
 
+  if (!session) {
+    return (
+      <LoginSplash
+        seasonLabel={currentSeasonBanner.label}
+        seasonImage={currentSeasonBanner.image}
+        onLogin={handleLogin}
+      />
+    );
+  }
+
   return (
     <div className="app-shell">
       <AppHeader
@@ -932,6 +1114,8 @@ function App() {
         seasonImage={currentSeasonBanner.image}
         sortBy={appSortBy}
         onSortChange={setAppSortBy}
+        userEmail={session.email}
+        onLogout={handleLogout}
       />
 
       <section className="hero" aria-label={`${currentSeasonBanner.label} care studio`}>
@@ -987,6 +1171,9 @@ function App() {
           <Route path={ROUTES.JOURNEY_START}>
             <JourneyStart
               activityLog={activityLog}
+              practiceLevelId={practiceLevelId}
+              practiceLevels={PRACTICE_LEVELS}
+              onPracticeLevelChange={changePracticeLevel}
               onRunPracticeStep={runNextPracticeStep}
               onResetPracticeBoard={resetPracticeBoard}
             />
@@ -1027,6 +1214,9 @@ function App() {
               onAddConcernNote={addConcernNote}
               onAddAppointmentNote={addAppointmentNote}
               activityLog={activityLog}
+              practiceLevelId={practiceLevelId}
+              practiceLevels={PRACTICE_LEVELS}
+              onPracticeLevelChange={changePracticeLevel}
               onRunPracticeStep={runNextPracticeStep}
               onResetPracticeBoard={resetPracticeBoard}
             />
@@ -1043,6 +1233,7 @@ function App() {
             <AppointmentsPage
               appointments={appointments}
               setAppointments={setAppointments}
+              availability={availability}
               patients={patients}
               clinicians={clinicians}
               patientLookup={patientLookup}
@@ -1088,7 +1279,100 @@ function getSlotStartTime(slot) {
   return slot.startTime || slot.time?.split("-")[0] || "";
 }
 
-function AppHeader({ registeredAt, seasonLabel, seasonImage, sortBy, onSortChange }) {
+function getMockPatientEmail(patient) {
+  if (!patient) {
+    return "patient@example.mock";
+  }
+
+  const namePart = (patient.name || patient.id || "patient")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ".")
+    .replace(/^\.+|\.+$/g, "");
+
+  return `${namePart || "patient"}@lumen.example.mock`;
+}
+
+function LoginSplash({ seasonLabel, seasonImage, onLogin }) {
+  const [credentials, setCredentials] = useState({
+    email: DEMO_LOGIN.email,
+    password: DEMO_LOGIN.password,
+  });
+  const [error, setError] = useState("");
+
+  const updateCredentials = (event) => {
+    setCredentials({ ...credentials, [event.target.name]: event.target.value });
+    setError("");
+  };
+
+  const submitLogin = (event) => {
+    event.preventDefault();
+    const loginError = onLogin(credentials);
+    setError(loginError);
+  };
+
+  return (
+    <main className="login-splash">
+      <img
+        src={seasonImage}
+        alt={`${seasonLabel} Lumen Appointments splash`}
+        className="login-splash-image"
+      />
+      <div className="login-splash-overlay" />
+      <section className="login-panel" aria-label="Lumen Appointments login">
+        <div className="login-brand">
+          <div className="lumen-mark" aria-hidden="true">
+            <span />
+          </div>
+          <div className="lumen-wordmark">
+            <strong>Lumen</strong>
+            <span>Appointments</span>
+          </div>
+        </div>
+        <p className="eyebrow">{seasonLabel} practice access</p>
+        <h1>Sign in to the appointment planner</h1>
+        <p>
+          Use the demo access to practise one appointment, then build up through
+          the training levels when the flow feels familiar.
+        </p>
+        <form className="login-form" onSubmit={submitLogin}>
+          <label>
+            Email
+            <input
+              name="email"
+              type="email"
+              value={credentials.email}
+              onChange={updateCredentials}
+              autoComplete="username"
+              required
+            />
+          </label>
+          <label>
+            Password
+            <input
+              name="password"
+              type="password"
+              value={credentials.password}
+              onChange={updateCredentials}
+              autoComplete="current-password"
+              required
+            />
+          </label>
+          {error && <p className="login-error">{error}</p>}
+          <button type="submit" className="btn btn-appointment">
+            Sign in
+          </button>
+        </form>
+        <div className="login-demo-note">
+          <strong>Demo access</strong>
+          <span>{DEMO_LOGIN.email}</span>
+          <span>{DEMO_LOGIN.password}</span>
+        </div>
+      </section>
+    </main>
+  );
+}
+
+function AppHeader({ registeredAt, seasonLabel, seasonImage, sortBy, onSortChange, userEmail, onLogout }) {
   const activeSortLabel = APP_SORT_OPTIONS.find((option) => option.value === sortBy)?.label || "Next Appointment";
 
   return (
@@ -1145,9 +1429,12 @@ function AppHeader({ registeredAt, seasonLabel, seasonImage, sortBy, onSortChang
           alt="Mock NHS logo"
           className="nhs-logo"
         />
+        <button type="button" className="header-sign-out" onClick={onLogout}>
+          Sign out
+        </button>
       </div>
 
-      <span className="season-chip">{seasonLabel}</span>
+      <span className="season-chip">{userEmail ? `${seasonLabel} - Signed in` : seasonLabel}</span>
     </header>
   );
 }
@@ -1653,7 +1940,7 @@ function AvailabilityPage({ availability, setAvailability, clinicians, clinician
   );
 }
 
-function AppointmentsPage({ appointments, setAppointments, patients, clinicians, patientLookup, clinicianLookup, sortBy }) {
+function AppointmentsPage({ appointments, setAppointments, availability, patients, clinicians, patientLookup, clinicianLookup, sortBy }) {
   const [form, setForm] = useState({
     patientId: patients[0]?.id || "",
     clinicianId: clinicians[0]?.id || "",
@@ -1662,16 +1949,34 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
     reason: "",
   });
   const [editingId, setEditingId] = useState(null);
+  const clinicianAvailability = useMemo(
+    () =>
+      availability
+        .filter((slot) => slot.clinicianId === form.clinicianId)
+        .filter((slot) => !form.date || slot.date === form.date)
+        .sort((first, second) =>
+          `${first.date || ""} ${getSlotStartTime(first)}`.localeCompare(
+            `${second.date || ""} ${getSlotStartTime(second)}`
+          )
+        ),
+    [availability, form.clinicianId, form.date]
+  );
   const sortedAppointments = useMemo(() => {
     const sorted = [...appointments];
 
     if (sortBy === "registration") {
       sorted.sort((first, second) =>
-        (first.patientRegisteredAt || "").localeCompare(second.patientRegisteredAt || "")
+        (patientLookup[first.patientId]?.registeredAt || "").localeCompare(
+          patientLookup[second.patientId]?.registeredAt || ""
+        )
       );
     } else if (sortBy === "patientName") {
       sorted.sort((first, second) =>
-        (first.patientName || "").localeCompare(second.patientName || "", undefined, { sensitivity: "base" })
+        (patientLookup[first.patientId]?.name || first.patientId || "").localeCompare(
+          patientLookup[second.patientId]?.name || second.patientId || "",
+          undefined,
+          { sensitivity: "base" }
+        )
       );
     } else {
       sorted.sort((first, second) =>
@@ -1680,10 +1985,23 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
     }
 
     return sorted;
-  }, [appointments, sortBy]);
+  }, [appointments, patientLookup, sortBy]);
 
   const updateForm = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
+  };
+
+  const selectAvailabilitySlot = (slot) => {
+    if ((slot.status || "").toLowerCase() !== "available") {
+      return;
+    }
+
+    setForm({
+      ...form,
+      clinicianId: slot.clinicianId,
+      date: slot.date,
+      time: getSlotStartTime(slot) || form.time,
+    });
   };
 
   const resetAppointmentForm = () => {
@@ -1711,6 +2029,30 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
     resetAppointmentForm();
   };
 
+  const updateAppointmentContact = (appointmentId, channel) => {
+    const contacted = channel !== "Not confirmed";
+
+    setAppointments(
+      appointments.map((appointment) =>
+        appointment.id === appointmentId
+          ? {
+              ...appointment,
+              confirmationMethod: channel,
+              patientCommunicationNeeded: !contacted,
+              communication: {
+                ...appointment.communication,
+                patientInformed: contacted,
+                channel,
+                at: contacted ? new Date().toISOString() : "",
+                by: contacted ? "Care Navigation Team" : "",
+                confirmationOutstanding: !contacted,
+              },
+            }
+          : appointment
+      )
+    );
+  };
+
   const editAppointment = (appointment) => {
     setForm({
       patientId: appointment.patientId,
@@ -1730,7 +2072,7 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
   };
 
   return (
-    <section className="page-grid">
+    <section className="page-grid appointments-grid">
       <Panel
         title={editingId ? "Update Appointment" : "Book Appointment"}
         subtitle="Match a patient with the right clinician and time."
@@ -1772,12 +2114,51 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
         </form>
       </Panel>
 
+      <Panel
+        title="Clinician Availability"
+        subtitle={
+          form.date
+            ? `${clinicianLookup[form.clinicianId]?.name || "Selected clinician"} on ${formatUkDate(form.date)}`
+            : `${clinicianLookup[form.clinicianId]?.name || "Selected clinician"} across all visible dates`
+        }
+      >
+        <div className="availability-preview">
+          {clinicianAvailability.length ? (
+            clinicianAvailability.map((slot) => {
+              const status = slot.status || "Available";
+              const isAvailable = status.toLowerCase() === "available";
+
+              return (
+                <button
+                  type="button"
+                  className={`availability-slot ${isAvailable ? "selectable" : ""}`}
+                  key={slot.id}
+                  onClick={() => selectAvailabilitySlot(slot)}
+                  disabled={!isAvailable}
+                >
+                  <strong>{formatUkDate(slot.date)}</strong>
+                  <span>{slot.time || `${slot.startTime} - ${slot.endTime}`}</span>
+                  <small className={`status status-${status.toLowerCase()}`}>{status}</small>
+                </button>
+              );
+            })
+          ) : (
+            <p className="empty-state">No slots match this clinician and date.</p>
+          )}
+        </div>
+      </Panel>
+
       <Panel title="Appointment Schedule" subtitle={`${appointments.length} appointments`}>
         <RecordList
           items={sortedAppointments}
-          renderItem={(appointment) => (
-            <>
-              <strong>{patientLookup[appointment.patientId]?.name || appointment.patientId}</strong>
+          renderItem={(appointment) => {
+            const patient = patientLookup[appointment.patientId];
+            const patientContacted = Boolean(appointment.communication?.patientInformed) && !appointment.patientCommunicationNeeded;
+            const contactChannel = patientContacted ? appointment.communication?.channel || appointment.confirmationMethod : "Not confirmed";
+
+            return (
+              <>
+              <strong>{patient?.name || appointment.patientId}</strong>
               <dl className="appointment-detail-meta">
                 <div>
                   <dt>Registered</dt>
@@ -1794,6 +2175,50 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
               </dl>
               <span>{formatUkDate(appointment.date)} at {appointment.time}</span>
               <small>{appointment.reason}</small>
+              <div className="patient-contact-panel" aria-label={`Patient contact status for ${patient?.name || appointment.patientId}`}>
+                <div>
+                  <strong>Patient communication</strong>
+                  <span className={`status ${patientContacted ? "status-contacted" : "status-not-confirmed"}`}>
+                    {patientContacted ? `Contacted via ${contactChannel}` : "Confirmation not recorded"}
+                  </span>
+                </div>
+                <dl>
+                  <div>
+                    <dt>Telephone</dt>
+                    <dd>{patient?.contact || "No telephone recorded"}</dd>
+                  </div>
+                  <div>
+                    <dt>Email</dt>
+                    <dd>{patient?.email || getMockPatientEmail(patient)}</dd>
+                  </div>
+                </dl>
+                <div className="contact-toggle-group" aria-label="Toggle patient confirmation contact method">
+                  <button
+                    type="button"
+                    className={`contact-toggle ${contactChannel === "Email" ? "active" : ""}`}
+                    onClick={() => updateAppointmentContact(appointment.id, "Email")}
+                    aria-pressed={contactChannel === "Email"}
+                  >
+                    Email
+                  </button>
+                  <button
+                    type="button"
+                    className={`contact-toggle ${contactChannel === "Telephone" ? "active" : ""}`}
+                    onClick={() => updateAppointmentContact(appointment.id, "Telephone")}
+                    aria-pressed={contactChannel === "Telephone"}
+                  >
+                    Telephone
+                  </button>
+                  <button
+                    type="button"
+                    className={`contact-toggle ${!patientContacted ? "active warning" : ""}`}
+                    onClick={() => updateAppointmentContact(appointment.id, "Not confirmed")}
+                    aria-pressed={!patientContacted}
+                  >
+                    Not confirmed
+                  </button>
+                </div>
+              </div>
               <div className="record-actions">
                 <button type="button" className="action-button" onClick={() => editAppointment(appointment)}>
                   Update
@@ -1803,7 +2228,8 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
                 </button>
               </div>
             </>
-          )}
+            );
+          }}
         />
       </Panel>
     </section>

@@ -40,6 +40,9 @@ function AdminDashboard({
   onAddConcernNote,
   onAddAppointmentNote,
   activityLog = [],
+  practiceLevelId,
+  practiceLevels = [],
+  onPracticeLevelChange,
   onRunPracticeStep,
   onResetPracticeBoard,
 }) {
@@ -63,6 +66,8 @@ function AdminDashboard({
     { label: "Communicate", colourClass: "admin-communicate" },
     { label: "Resolve", colourClass: "admin-resolve" },
   ];
+  const activePracticeLevel =
+    practiceLevels.find((level) => level.id === practiceLevelId) || practiceLevels[0];
 
   return (
     <section className="admin-dashboard">
@@ -124,10 +129,30 @@ function AdminDashboard({
         <AdminPanel title="Practice Controls">
           <div className="admin-practice-panel">
             <p>
-              Practise the whole mock system as if it is live. Move one safe
-              admin coordination step at a time, or reset the training board
-              when the workflow becomes tangled.
+              Practise the mock system as if it is live. Start small, master
+              the pattern, then add more appointments when the flow feels steady.
             </p>
+            <div className="practice-level-panel admin-level-panel">
+              <label htmlFor="admin-practice-level">Practice level</label>
+              <select
+                id="admin-practice-level"
+                value={practiceLevelId}
+                onChange={(event) => onPracticeLevelChange?.(event.target.value)}
+              >
+                {practiceLevels.map((level) => (
+                  <option value={level.id} key={level.id}>
+                    {level.label}
+                  </option>
+                ))}
+              </select>
+              {activePracticeLevel && <small>{activePracticeLevel.summary}</small>}
+              <ol>
+                <li>Confirm the patient registration story.</li>
+                <li>Check appointment status and clinician assignment.</li>
+                <li>Run one practice step, then read the activity log.</li>
+                <li>Reset this level before moving up.</li>
+              </ol>
+            </div>
             <div className="admin-task-actions">
               <button type="button" className="action-button" onClick={onRunPracticeStep}>
                 Run next practice step

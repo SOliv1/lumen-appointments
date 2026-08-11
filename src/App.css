@@ -40,6 +40,109 @@ textarea {
   min-height: 100vh;
 }
 
+.login-splash {
+  position: relative;
+  min-height: 100vh;
+  display: grid;
+  align-items: center;
+  padding: clamp(24px, 6vw, 72px);
+  overflow: hidden;
+  background: #0e1b2f;
+}
+
+.login-splash-image,
+.login-splash-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.login-splash-image {
+  object-fit: cover;
+  filter: brightness(0.82) saturate(1.08);
+}
+
+.login-splash-overlay {
+  background:
+    linear-gradient(90deg, rgba(14, 27, 47, 0.72), rgba(14, 27, 47, 0.3) 58%, rgba(255, 250, 244, 0.12)),
+    linear-gradient(0deg, rgba(14, 27, 47, 0.54), rgba(14, 27, 47, 0.08));
+}
+
+.login-panel {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 460px);
+  padding: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 24px 70px rgba(14, 27, 47, 0.34);
+  backdrop-filter: blur(18px);
+}
+
+.login-brand {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.login-panel .eyebrow {
+  color: #7b5360;
+}
+
+.login-panel h1 {
+  margin: 0;
+  color: #0e1b2f;
+  font-size: clamp(1.8rem, 4vw, 2.45rem);
+}
+
+.login-panel > p:not(.eyebrow) {
+  margin: 14px 0 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.login-form {
+  display: grid;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.login-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--plum);
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.login-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 6px;
+  background: #f8e1e1;
+  color: #854343;
+  font-weight: 800;
+}
+
+.login-demo-note {
+  display: grid;
+  gap: 4px;
+  margin-top: 18px;
+  padding: 12px;
+  border: 1px solid #c7dfd9;
+  border-radius: 8px;
+  background: #f1f8f3;
+  color: #456d50;
+  font-size: 0.82rem;
+}
+
+.login-demo-note strong {
+  color: var(--plum);
+}
+
 .maskable-app-header {
   --header-height: 64px;
   position: sticky;
@@ -220,6 +323,27 @@ textarea {
   object-fit: contain;
 }
 
+.header-sign-out {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid #d6dee7;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.9);
+  color: #5d6d82;
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.header-sign-out:hover {
+  text-decoration: underline;
+}
+
+.header-sign-out:focus-visible {
+  outline: 3px solid #183a5a;
+  outline-offset: 3px;
+}
+
 .season-chip {
   justify-self: end;
   padding: 4px 8px;
@@ -395,7 +519,7 @@ textarea {
 
 .practice-controls {
   display: grid;
-  grid-template-columns: minmax(260px, 1fr) minmax(220px, 320px) minmax(260px, 380px);
+  grid-template-columns: minmax(240px, 1fr) minmax(240px, 320px) minmax(190px, 240px) minmax(240px, 340px);
   gap: 18px;
   align-items: start;
   padding: 18px;
@@ -414,6 +538,51 @@ textarea {
   margin: 8px 0 0;
   color: var(--muted);
   line-height: 1.45;
+}
+
+.practice-level-summary {
+  display: block;
+  margin-top: 10px;
+  color: #6b4f78;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.practice-level-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid #d0b7d8;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.practice-level-panel label {
+  color: var(--plum);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.practice-level-panel select {
+  background: #fdf7ef;
+  color: var(--plum);
+  font-weight: 800;
+}
+
+.practice-level-panel ol {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 20px;
+  color: var(--muted);
+  line-height: 1.35;
+}
+
+.practice-level-panel small {
+  color: #6b4f78;
+  font-weight: 800;
+  line-height: 1.4;
 }
 
 .practice-actions {
@@ -641,6 +810,10 @@ textarea {
   align-items: start;
 }
 
+.appointments-grid {
+  grid-template-columns: minmax(280px, 360px) minmax(260px, 360px) 1fr;
+}
+
 .panel {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -777,6 +950,50 @@ textarea:focus {
   gap: 12px;
 }
 
+.availability-preview {
+  display: grid;
+  gap: 10px;
+}
+
+.availability-slot {
+  display: grid;
+  grid-template-columns: minmax(92px, 1fr) minmax(84px, auto) auto;
+  gap: 10px;
+  align-items: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+  color: var(--ink);
+  text-align: left;
+}
+
+.availability-slot.selectable {
+  cursor: pointer;
+}
+
+.availability-slot.selectable:hover {
+  border-color: var(--green);
+  background: #f1f8f3;
+}
+
+.availability-slot:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.availability-slot strong {
+  color: var(--ink);
+  font-size: 0.86rem;
+}
+
+.availability-slot span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
 .patient-record-list-newest,
 .patient-record-list-oldest {
   animation: patient-list-settle 180ms ease-out;
@@ -810,6 +1027,90 @@ textarea:focus {
 .record-card span,
 .record-card small {
   color: var(--muted);
+}
+
+.patient-contact-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 12px;
+  border: 1px solid #c7dfd9;
+  border-radius: 8px;
+  background: #f6fbf8;
+}
+
+.patient-contact-panel > div:first-child {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.patient-contact-panel > div:first-child strong {
+  color: var(--ink);
+  font-size: 0.86rem;
+}
+
+.patient-contact-panel dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.patient-contact-panel dt {
+  color: var(--plum);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.patient-contact-panel dd {
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
+.contact-toggle-group {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.contact-toggle {
+  min-height: 34px;
+  padding: 7px 9px;
+  border: 1px solid #d6dee7;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.contact-toggle:hover {
+  border-color: var(--green);
+}
+
+.contact-toggle:focus-visible {
+  outline: 3px solid #183a5a;
+  outline-offset: 2px;
+}
+
+.contact-toggle.active {
+  border-color: var(--green);
+  background: #e5f1e8;
+  color: #477856;
+}
+
+.contact-toggle.warning {
+  border-color: #d8b9c4;
+  background: #fff5f6;
+  color: #7b5360;
 }
 
 .action-button {
@@ -930,6 +1231,16 @@ textarea:focus {
 .status-cancelled {
   background: #f5e3df;
   color: #9a5b59;
+}
+
+.status-contacted {
+  background: #e5f1e8;
+  color: #477856;
+}
+
+.status-not-confirmed {
+  background: #fff5f6;
+  color: #7b5360;
 }
 
 .stacked-panels {
@@ -1053,6 +1364,10 @@ textarea:focus {
     height: 28px;
   }
 
+  .header-sign-out {
+    display: none;
+  }
+
   .app-nav {
     top: 72px;
   }
@@ -1089,7 +1404,13 @@ textarea:focus {
   }
 
   .page-grid,
+  .appointments-grid,
   .split-row {
+    grid-template-columns: 1fr;
+  }
+
+  .patient-contact-panel dl,
+  .contact-toggle-group {
     grid-template-columns: 1fr;
   }
 

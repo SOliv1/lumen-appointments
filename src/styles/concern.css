@@ -1219,6 +1219,15 @@
     line-height: 1.45;
 }
 
+.admin-level-panel {
+    border-color: #d0b7d8;
+    background: #fbf7fd;
+}
+
+.admin-level-panel ol {
+    margin: 0;
+}
+
 .admin-activity-log {
     display: grid;
     gap: 8px;
