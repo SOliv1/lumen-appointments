@@ -934,6 +934,21 @@ function App() {
         onSortChange={setAppSortBy}
       />
 
+      <section className="hero" aria-label={`${currentSeasonBanner.label} care studio`}>
+        <img
+          src={currentSeasonBanner.image}
+          alt={`${currentSeasonBanner.label} Lumen Appointments banner`}
+          className="hero-image"
+        />
+        <div className="hero-content">
+          <p className="eyebrow">{currentSeasonBanner.label} care studio</p>
+          <p>
+            Coordinate patients, clinicians, availability and bookings inside a calm,
+            seasonal workspace.
+          </p>
+        </div>
+      </section>
+
       <nav className="app-nav" aria-label="Primary navigation">
         <NavLink to={ROUTES.JOURNEY_START} activeClassName="active">
           Begin Care Journey
