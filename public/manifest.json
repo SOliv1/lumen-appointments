@@ -1,0 +1,17 @@
+{
+  "short_name": "Lumen",
+  "name": "Lumen Appointments",
+  "description": "A calm appointment planning workspace for patient registration, bookings and care coordination.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fbfb",
+  "theme_color": "#35ada3",
+  "icons": [
+    {
+      "src": "/icons/lumen-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

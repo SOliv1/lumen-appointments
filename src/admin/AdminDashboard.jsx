@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import JourneyPositionBanner from "../JourneyPositionBanner";
 import CommunicationJourney from "../communication/CommunicationJourney";
 import NoteTimeline from "../notes/NoteTimeline";
+import { formatPatientStoryDate } from "../dateUtils";
 
 const ADMIN_TIME_OPTIONS = [
   "08:00",
@@ -49,7 +50,7 @@ function AdminDashboard({
     ["Changed", "Cancelled", "Released"].includes(appointment.status)
   );
   const communications = concerns.slice(0, 8);
-  const outstandingTasks = buildOutstandingTasks(concerns, appointments);
+  const outstandingTasks = buildOutstandingTasks(concerns, appointments, patientLookup);
   const primaryTask =
     outstandingTasks.find((task) => task.priorityClass === "clarify" || task.priorityClass === "query") ||
     outstandingTasks[0];
@@ -96,6 +97,7 @@ function AdminDashboard({
             ? `${primaryTask.patientName}: ${primaryTask.text}`
             : "No immediate administration action is waiting."
         }
+        registeredAt={primaryTask?.patientRegisteredAt ? formatPatientStoryDate(primaryTask.patientRegisteredAt) : ""}
         className="admin-position-banner"
       />
 
@@ -213,13 +215,28 @@ function AdminDashboard({
                 <article className="admin-list-item" key={appointment.id}>
                   <strong>{patientLookup[appointment.patientId]?.name || appointment.patientId}</strong>
                   <span>{appointment.status}</span>
+                  <dl className="appointment-detail-meta">
+                    <div>
+                      <dt>Registered</dt>
+                      <dd>{formatPatientStoryDate(appointment.patientRegisteredAt)}</dd>
+                    </div>
+                    <div>
+                      <dt>Appointment created</dt>
+                      <dd>{formatPatientStoryDate(appointment.createdAt || appointment.date)}</dd>
+                    </div>
+                    <div>
+                      <dt>Clinician assigned</dt>
+                      <dd>{clinicianLookup[appointment.clinicianId]?.name || appointment.clinicianId}</dd>
+                    </div>
+                  </dl>
                   <small>
                     {appointment.previousTime ? `Was ${appointment.previousTime}, now ${appointment.time}` : appointment.time}
                   </small>
                   <small>{appointment.previousDate ? `Previous date ${appointment.previousDate}` : `Date ${appointment.date}`}</small>
-                  <small>{clinicianLookup[appointment.clinicianId]?.name || appointment.clinicianId}</small>
                   <AppointmentMovementForm
                     appointment={appointment}
+                    patientRegisteredAt={appointment.patientRegisteredAt}
+                    clinicianName={clinicianLookup[appointment.clinicianId]?.name || appointment.clinicianId}
                     onUpdateAppointment={onUpdateAppointment}
                     onAddAppointmentNote={onAddAppointmentNote}
                   />
@@ -380,7 +397,7 @@ function formatLogTime(value) {
   });
 }
 
-function AppointmentMovementForm({ appointment, onUpdateAppointment, onAddAppointmentNote }) {
+function AppointmentMovementForm({ appointment, patientRegisteredAt, clinicianName, onUpdateAppointment, onAddAppointmentNote }) {
   const updateAppointmentField = (field, value) => {
     onUpdateAppointment(appointment.id, {
       [field]: value,
@@ -410,6 +427,20 @@ function AppointmentMovementForm({ appointment, onUpdateAppointment, onAddAppoin
   return (
     <div className="appointment-update-panel">
       <strong>Update next appointment</strong>
+      <dl className="appointment-detail-meta">
+        <div>
+          <dt>Registered</dt>
+          <dd>{formatPatientStoryDate(patientRegisteredAt)}</dd>
+        </div>
+        <div>
+          <dt>Appointment created</dt>
+          <dd>{formatPatientStoryDate(appointment.createdAt || appointment.date)}</dd>
+        </div>
+        <div>
+          <dt>Clinician assigned</dt>
+          <dd>{clinicianName || "Not assigned"}</dd>
+        </div>
+      </dl>
       <div className="appointment-update-grid">
         <label>
           Next date
@@ -504,15 +535,17 @@ function AppointmentMovementForm({ appointment, onUpdateAppointment, onAddAppoin
   );
 }
 
-function buildOutstandingTasks(concerns, appointments = []) {
+function buildOutstandingTasks(concerns, appointments = [], patientLookup = {}) {
   const concernTasks = concerns.flatMap((concern) => {
     const patientName = concern.patientName || concern.patientId;
+    const patientRegisteredAt = concern.patientRegisteredAt || patientLookup[concern.patientId]?.registeredAt;
     const tasks = [];
 
     if (concern.status === "Awaiting Review") {
       tasks.push({
         id: `${concern.id}-review`,
         patientName,
+        patientRegisteredAt,
         priority: "Review",
         priorityClass: "review",
         text: "Admin checks the concern has a patient, a plain-language reason, a trigger, and enough detail to route safely.",
@@ -530,6 +563,7 @@ function buildOutstandingTasks(concerns, appointments = []) {
       tasks.push({
         id: `${concern.id}-info`,
         patientName,
+        patientRegisteredAt,
         priority: "Clarify",
         priorityClass: "clarify",
         text: "This should not move to triage until the missing information has been requested, received, and recorded.",
@@ -552,6 +586,7 @@ function buildOutstandingTasks(concerns, appointments = []) {
       tasks.push({
         id: `${concern.id}-slot`,
         patientName,
+        patientRegisteredAt,
         priority: "Slot",
         priorityClass: "slot",
         text: "Concern needs to be matched to an available slot.",
@@ -569,6 +604,7 @@ function buildOutstandingTasks(concerns, appointments = []) {
       tasks.push({
         id: `${concern.id}-clinician-query`,
         patientName,
+        patientRegisteredAt,
         priority: "Clinician query",
         priorityClass: "query",
         text: "Clinician has requested clarification before clinical action.",
@@ -592,6 +628,7 @@ function buildOutstandingTasks(concerns, appointments = []) {
       tasks.push({
         id: `${concern.id}-patient-contact`,
         patientName,
+        patientRegisteredAt,
         priority: "Contact",
         priorityClass: "contact",
         text: "Patient communication should confirm the recorded time, purpose, and current journey status.",
@@ -616,6 +653,7 @@ function buildOutstandingTasks(concerns, appointments = []) {
     .map((appointment) => ({
       id: `${appointment.id}-appointment-communication`,
       patientName: appointment.patientName || appointment.patientId,
+      patientRegisteredAt: appointment.patientRegisteredAt || patientLookup[appointment.patientId]?.registeredAt,
       priority: "Contact",
       priorityClass: "contact",
       text: "Appointment date/time has changed and needs clear patient confirmation.",

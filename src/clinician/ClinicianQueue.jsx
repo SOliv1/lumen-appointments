@@ -6,6 +6,7 @@ import {
 } from "./clinicianJourney";
 import JourneyPositionBanner from "../JourneyPositionBanner";
 import NoteTimeline from "../notes/NoteTimeline";
+import { formatPatientStoryDate } from "../dateUtils";
 
 function ClinicianQueue({ concerns, patientLookup, onUpdateClinicianJourney, onAddConcernNote }) {
   const activeConcern =
@@ -30,6 +31,7 @@ function ClinicianQueue({ concerns, patientLookup, onUpdateClinicianJourney, onA
           waymark={activeStep}
           state={activeConcern.status}
           detail={`${activePatientName}: ${activeConcern.description}`}
+          registeredAt={formatPatientStoryDate(activeConcern.patientRegisteredAt)}
           className="clinician-position-banner"
         />
       )}
@@ -81,6 +83,9 @@ function ClinicianQueueCard({ concern, patientName, onUpdateClinicianJourney, on
         <div>
           <span className="internal-pill">Internal queue item</span>
           <h3>{patientName}</h3>
+          <span className="journey-card-registration">
+            Registered {formatPatientStoryDate(concern.patientRegisteredAt)}
+          </span>
           <p>{concern.description}</p>
         </div>
 

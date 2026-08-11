@@ -1,5 +1,6 @@
 import ConcernRow from "./ConcernRow";
 import JourneyPositionBanner from "../JourneyPositionBanner";
+import { formatPatientStoryDate } from "../dateUtils";
 
 const formatUkDisplayDate = (value) => {
   const date = value ? new Date(value) : new Date();
@@ -39,6 +40,7 @@ function ConcernList({ concerns, onAdvanceConcern, onUpdateConcern, onAddConcern
           waymark="Concern"
           state={activeConcern.status}
           detail={`${activeConcern.patientName}: ${activeConcern.description}`}
+          registeredAt={formatPatientStoryDate(activeConcern.patientRegisteredAt)}
           className="patient-position-banner"
         />
       )}

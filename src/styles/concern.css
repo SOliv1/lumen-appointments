@@ -10,6 +10,9 @@
 .journey-position-banner {
     display: grid;
     gap: 5px;
+    position: sticky;
+    top: 126px;
+    z-index: 8;
     margin-bottom: 16px;
     padding: 14px 16px;
     border: 1px solid var(--position-colour);
@@ -18,7 +21,13 @@
     background: var(--position-bg);
 }
 
-.journey-position-banner span {
+.journey-position-main {
+    display: grid;
+    gap: 5px;
+}
+
+.journey-position-banner span,
+.journey-registration-marker span {
     color: var(--muted);
     font-size: 0.72rem;
     font-weight: 900;
@@ -28,6 +37,23 @@
 .journey-position-banner strong {
     color: var(--ink);
     font-size: 1.05rem;
+}
+
+.journey-registration-marker {
+    display: inline-grid;
+    justify-self: start;
+    gap: 2px;
+    margin: 4px 0;
+    padding: 8px 12px;
+    border: 1px solid #d8b9c4;
+    border-radius: 8px;
+    background: #fffaf4;
+    box-shadow: 0 8px 18px rgba(83, 64, 57, 0.08);
+}
+
+.journey-registration-marker strong {
+    color: #7b5360;
+    font-size: 1rem;
 }
 
 .journey-position-banner p {
@@ -235,6 +261,19 @@
 .concern-facts dd {
     margin: 0;
     color: var(--ink);
+}
+
+.journey-card-registration {
+    display: inline-flex;
+    width: fit-content;
+    margin: 4px 0 6px;
+    padding: 5px 9px;
+    border: 1px solid #d8b9c4;
+    border-radius: 999px;
+    background: #fff5f6;
+    color: #7b5360;
+    font-size: 0.78rem;
+    font-weight: 900;
 }
 
 .patient-message {
@@ -1230,6 +1269,35 @@
     text-transform: uppercase;
 }
 
+.appointment-detail-meta {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(120px, 1fr));
+    gap: 8px;
+    margin: 4px 0;
+}
+
+.appointment-detail-meta div {
+    display: grid;
+    gap: 2px;
+    padding: 8px 10px;
+    border: 1px solid #ead8b9;
+    border-radius: 8px;
+    background: #fffdf7;
+}
+
+.appointment-detail-meta dt {
+    color: #7d6030;
+    font-size: 0.7rem;
+    font-weight: 900;
+    text-transform: uppercase;
+}
+
+.appointment-detail-meta dd {
+    margin: 0;
+    color: var(--ink);
+    font-weight: 800;
+}
+
 .appointment-update-panel small {
     color: #6f6252;
 }
@@ -1361,6 +1429,7 @@
     .admin-summary-grid,
     .admin-grid,
     .admin-task-routing,
+    .appointment-detail-meta,
     .appointment-update-grid {
         grid-template-columns: 1fr;
     }
@@ -1368,5 +1437,11 @@
     .admin-task-actions .action-button,
     .admin-list-item .action-button {
         width: 100%;
+    }
+}
+
+@media (max-width: 760px) {
+    .journey-position-banner {
+        top: 134px;
     }
 }

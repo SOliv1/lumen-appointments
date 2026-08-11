@@ -65,6 +65,10 @@ function ConcernRow({ concern, onAdvanceConcern, onUpdateConcern, onAddConcernNo
         <strong>{concern.description}</strong>
         <dl className="concern-facts">
           <div>
+            <dt>Registered</dt>
+            <dd>{formatDate ? formatDate(concern.patientRegisteredAt) : concern.patientRegisteredAt || "Date not recorded"}</dd>
+          </div>
+          <div>
             <dt>Confirmed time</dt>
             <dd>{concern.confirmedTime || "Not confirmed yet"}</dd>
           </div>

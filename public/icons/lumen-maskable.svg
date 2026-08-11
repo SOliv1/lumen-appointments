@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title>Lumen Appointments</title>
+  <rect width="512" height="512" rx="112" fill="#f8fbfb"/>
+  <circle cx="256" cy="246" r="132" fill="#ffffff" stroke="#35ada3" stroke-width="22"/>
+  <path d="M256 139v206" stroke="#35ada3" stroke-width="24" stroke-linecap="round"/>
+  <path d="M194 199h124M204 252h104M218 305h76" stroke="#35ada3" stroke-width="20" stroke-linecap="round"/>
+  <path d="M256 205l-44-44M256 205l44-44M256 270l-54-48M256 270l54-48M256 335l-48-42M256 335l48-42" stroke="#35ada3" stroke-width="20" stroke-linecap="round"/>
+  <path d="M154 246h-40M398 246h-40" stroke="#35ada3" stroke-width="22" stroke-linecap="round"/>
+</svg>

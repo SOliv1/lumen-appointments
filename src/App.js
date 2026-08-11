@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, Redirect, Route, Switch } from "react-router-dom";
 import "./App.css";
 import "./styles/concern.css";
@@ -12,6 +12,7 @@ import initialAppointments from "./mockups/appointments.json";
 import initialAvailability from "./mockups/availability.json";
 import initialClinicians from "./mockups/clinicians.json";
 import initialPatients from "./mockups/patients.json";
+import { formatPatientStoryDate } from "./dateUtils";
 
 const ROUTES = {
   PATIENTS: "/patients",
@@ -24,6 +25,18 @@ const ROUTES = {
   CLINICIAN_QUEUE: "/clinician-queue",
   ADMINISTRATION: "/administration",
 };
+
+const PATIENT_SORT_STORAGE_KEY = "lumenAppointmentsPatientSort";
+const DEFAULT_PATIENT_SORT = {
+  by: "registration",
+  order: "newest",
+};
+
+const APP_SORT_OPTIONS = [
+  { value: "nextAppointment", label: "Next Appointment" },
+  { value: "registration", label: "Registration Date" },
+  { value: "patientName", label: "Patient Name" },
+];
 
 const SEASONAL_BANNERS = {
   spring: {
@@ -447,6 +460,8 @@ const formatUkDate = (isoDate) => {
   return year && month && day ? `${day}/${month}/${year}` : isoDate;
 };
 
+const formatPatientRegisteredDate = (value) => formatPatientStoryDate(value);
+
 const buildInitialConcernNotes = (concern) => [
   {
     id: `${concern.id}-patient-concern-note`,
@@ -477,13 +492,26 @@ const buildInitialAppointmentNotes = (appointment) => [
   },
 ];
 
+const addRegistrationDates = (patientList) =>
+  patientList.map((patient, index) => {
+    if (patient.registeredAt) {
+      return patient;
+    }
+
+    const registeredAt = new Date(Date.UTC(2026, 6, 30 + index)).toISOString().slice(0, 10);
+    return { ...patient, registeredAt };
+  });
+
+const INITIAL_PATIENTS = addRegistrationDates([...initialPatients, ...EXTRA_MOCK_PATIENTS]);
+
 function App() {
   const currentSeasonBanner = getCurrentSeasonBanner();
-  const [patients, setPatients] = useState([...initialPatients, ...EXTRA_MOCK_PATIENTS]);
+  const [patients, setPatients] = useState(INITIAL_PATIENTS);
   const [clinicians, setClinicians] = useState([...initialClinicians, ...EXTRA_MOCK_CLINICIANS]);
   const [availability, setAvailability] = useState(INITIAL_MOCK_AVAILABILITY);
   const [appointments, setAppointments] = useState(INITIAL_MOCK_APPOINTMENTS);
   const [concerns, setConcerns] = useState(INITIAL_MOCK_CONCERNS);
+  const [appSortBy, setAppSortBy] = useState("nextAppointment");
   const [activityLog, setActivityLog] = useState([
     {
       id: "practice-log-start",
@@ -505,6 +533,7 @@ function App() {
       concerns.map((concern) => ({
         ...concern,
         patientName: patientLookup[concern.patientId]?.name || concern.patientId,
+        patientRegisteredAt: patientLookup[concern.patientId]?.registeredAt,
         notes: concern.notes || buildInitialConcernNotes(concern),
       })),
     [concerns, patientLookup]
@@ -514,10 +543,18 @@ function App() {
       appointments.map((appointment) => ({
         ...appointment,
         patientName: patientLookup[appointment.patientId]?.name || appointment.patientId,
+        patientRegisteredAt: patientLookup[appointment.patientId]?.registeredAt,
         notes: appointment.notes || buildInitialAppointmentNotes(appointment),
       })),
     [appointments, patientLookup]
   );
+  const headerRegisteredAt = useMemo(() => {
+    const registeredPatients = patients
+      .filter((patient) => patient.registeredAt)
+      .sort((first, second) => second.registeredAt.localeCompare(first.registeredAt));
+
+    return registeredPatients[0]?.registeredAt;
+  }, [patients]);
 
   const updateConcernJourney = (id, changes) => {
     setConcerns((currentConcerns) =>
@@ -577,7 +614,7 @@ function App() {
   };
 
   const resetPracticeBoard = () => {
-    setPatients([...initialPatients, ...EXTRA_MOCK_PATIENTS]);
+    setPatients(INITIAL_PATIENTS);
     setClinicians([...initialClinicians, ...EXTRA_MOCK_CLINICIANS]);
     setAvailability(INITIAL_MOCK_AVAILABILITY);
     setAppointments(INITIAL_MOCK_APPOINTMENTS);
@@ -889,20 +926,13 @@ function App() {
 
   return (
     <div className="app-shell">
-      <header className="hero">
-        <img
-          src={currentSeasonBanner.image}
-          alt={`${currentSeasonBanner.label} SereneCare Sync banner`}
-          className="hero-image"
-        />
-        <div className="hero-content">
-          <p className="eyebrow">{currentSeasonBanner.label} care studio</p>
-          <p>
-            Coordinate patients, clinicians, availability and bookings inside a calm,
-            seasonal workspace.
-          </p>
-        </div>
-      </header>
+      <AppHeader
+        registeredAt={headerRegisteredAt}
+        seasonLabel={currentSeasonBanner.label}
+        seasonImage={currentSeasonBanner.image}
+        sortBy={appSortBy}
+        onSortChange={setAppSortBy}
+      />
 
       <nav className="app-nav" aria-label="Primary navigation">
         <NavLink to={ROUTES.JOURNEY_START} activeClassName="active">
@@ -1002,13 +1032,34 @@ function App() {
               clinicians={clinicians}
               patientLookup={patientLookup}
               clinicianLookup={clinicianLookup}
+              sortBy={appSortBy}
             />
           </Route>
         </Switch>
       </main>
 
       <footer className="app-footer">
-        <small>&copy; 2026 SereneCare Sync</small>
+        <div className="footer-container">
+          <div className="footer-left">
+            <strong>Lumen Appointments</strong>
+            <span>&copy; 2026 Lumen Appointments</span>
+          </div>
+
+          <nav className="footer-middle" aria-label="Footer links">
+            <a href="#privacy-security">Privacy &amp; Security</a>
+            <a href="#terms-of-service">Terms of Service</a>
+            <a href="#data-protection">Data Protection</a>
+          </nav>
+
+          <a
+            className="footer-right"
+            href="https://seasonal.studio"
+            target="_blank"
+            rel="noreferrer"
+          >
+            seasonal.studio
+          </a>
+        </div>
       </footer>
     </div>
   );
@@ -1022,9 +1073,169 @@ function getSlotStartTime(slot) {
   return slot.startTime || slot.time?.split("-")[0] || "";
 }
 
+function AppHeader({ registeredAt, seasonLabel, seasonImage, sortBy, onSortChange }) {
+  const activeSortLabel = APP_SORT_OPTIONS.find((option) => option.value === sortBy)?.label || "Next Appointment";
+
+  return (
+    <header
+      className="maskable-app-header"
+      style={{ "--season-banner": `url(${seasonImage})` }}
+    >
+      <div className="app-brand-block">
+        <div className="lumen-mark" aria-hidden="true">
+          <span />
+        </div>
+        <div>
+          <div className="lumen-wordmark">
+            <strong>Lumen</strong>
+            <span>Appointments</span>
+          </div>
+          <p>Registered: {formatPatientRegisteredDate(registeredAt)}</p>
+        </div>
+      </div>
+
+      <div className="app-header-actions">
+        <label className="app-sort-control">
+          <span aria-hidden="true">↕</span>
+          <span className="app-sort-label">Sort:</span>
+          <select
+            value={sortBy}
+            onChange={(event) => onSortChange(event.target.value)}
+            aria-label={`Sort appointments: ${activeSortLabel}`}
+          >
+            {APP_SORT_OPTIONS.map((option) => (
+              <option value={option.value} key={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="app-sort-icon-control">
+          <span aria-hidden="true">↕</span>
+          <span className="screen-reader-only">Sort appointments</span>
+          <select
+            value={sortBy}
+            onChange={(event) => onSortChange(event.target.value)}
+            aria-label={`Sort appointments: ${activeSortLabel}`}
+          >
+            {APP_SORT_OPTIONS.map((option) => (
+              <option value={option.value} key={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <img
+          src="/logos/nhs-mock-logo.svg"
+          alt="Mock NHS logo"
+          className="nhs-logo"
+        />
+      </div>
+
+      <span className="season-chip">{seasonLabel}</span>
+    </header>
+  );
+}
+
 function PatientsPage({ patients, setPatients }) {
   const [form, setForm] = useState({ name: "", dob: "", contact: "", notes: "" });
   const [editingId, setEditingId] = useState(null);
+  const [patientSort, setPatientSort] = useState(() => {
+    try {
+      const savedSort = window.localStorage.getItem(PATIENT_SORT_STORAGE_KEY);
+      return savedSort ? { ...DEFAULT_PATIENT_SORT, ...JSON.parse(savedSort) } : DEFAULT_PATIENT_SORT;
+    } catch (error) {
+      return DEFAULT_PATIENT_SORT;
+    }
+  });
+
+  const sortedPatients = useMemo(() => {
+    const sorted = patients.map((patient, index) => ({ patient, index }));
+
+    if (patientSort.by === "name") {
+      sorted.sort((first, second) =>
+        first.patient.name.localeCompare(second.patient.name, undefined, { sensitivity: "base" })
+      );
+    } else if (patientSort.by === "dob") {
+      sorted.sort((first, second) => (first.patient.dob || "").localeCompare(second.patient.dob || ""));
+    } else {
+      sorted.sort((first, second) => {
+        const dateSort = (first.patient.registeredAt || "").localeCompare(second.patient.registeredAt || "");
+        return dateSort || first.index - second.index;
+      });
+    }
+
+    if (patientSort.order === "newest") {
+      sorted.reverse();
+    }
+
+    return sorted.map(({ patient }) => patient);
+  }, [patients, patientSort]);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(PATIENT_SORT_STORAGE_KEY, JSON.stringify(patientSort));
+    } catch (error) {
+      // Keep sorting usable even when local storage is unavailable.
+    }
+  }, [patientSort]);
+
+  const togglePatientSortOrder = () => {
+    const currentScrollY = window.scrollY;
+
+    setPatientSort((currentSort) => (
+      {
+        ...currentSort,
+        order: currentSort.order === "newest" ? "oldest" : "newest",
+      }
+    ));
+
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: currentScrollY });
+    });
+  };
+
+  const updatePatientSortBy = (event) => {
+    const currentScrollY = window.scrollY;
+    const { value } = event.target;
+
+    setPatientSort((currentSort) => (
+      {
+        ...currentSort,
+        by: value,
+      }
+    ));
+
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: currentScrollY });
+    });
+  };
+
+  const isNewestFirst = patientSort.order === "newest";
+  const sortOrderCopy = {
+    registration: {
+      label: isNewestFirst ? "Sort patients by newest first" : "Sort patients by oldest first",
+      text: isNewestFirst ? "Recent first" : "Earliest first",
+    },
+    name: {
+      label: isNewestFirst ? "Sort patients by name Z to A" : "Sort patients by name A to Z",
+      text: isNewestFirst ? "Z to A" : "A to Z",
+    },
+    dob: {
+      label: isNewestFirst
+        ? "Sort patients by latest date of birth first"
+        : "Sort patients by earliest date of birth first",
+      text: isNewestFirst ? "Latest DOB" : "Earliest DOB",
+    },
+  };
+  const activeSortCopy = sortOrderCopy[patientSort.by] || sortOrderCopy.registration;
+  const sortToggleIcon = isNewestFirst ? "↑" : "↓";
+
+  const sortListClassName = [
+    "patient-record-list",
+    `patient-record-list-${patientSort.by}`,
+    `patient-record-list-${patientSort.order}`,
+  ].join(" ");
 
   const updateForm = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -1040,11 +1251,11 @@ function PatientsPage({ patients, setPatients }) {
     if (editingId) {
       setPatients(
         patients.map((patient) =>
-          patient.id === editingId ? { ...form, id: editingId } : patient
+          patient.id === editingId ? { ...patient, ...form, id: editingId } : patient
         )
       );
     } else {
-      setPatients([...patients, { ...form, id: makeId("patient") }]);
+      setPatients([...patients, { ...form, id: makeId("patient"), registeredAt: getTodayIsoDate() }]);
     }
     resetPatientForm();
   };
@@ -1090,12 +1301,47 @@ function PatientsPage({ patients, setPatients }) {
         </form>
       </Panel>
 
-      <Panel title="Patient List" subtitle={`${patients.length} active records`}>
+      <Panel
+        title="Patient List"
+        subtitle={`${patients.length} active records`}
+        actions={
+          <div className="sort-controls">
+            <label className="screen-reader-only" htmlFor="patient-sort-by">
+              Sort patients by
+            </label>
+            <select
+              id="patient-sort-by"
+              className="sort-select"
+              value={patientSort.by}
+              onChange={updatePatientSortBy}
+              aria-label="Sort patients by"
+            >
+              <option value="registration">Registration date</option>
+              <option value="name">Patient name</option>
+              <option value="dob">Date of birth</option>
+            </select>
+            <button
+              type="button"
+              className="sort-toggle"
+              aria-label={activeSortCopy.label}
+              aria-pressed={isNewestFirst}
+              onClick={togglePatientSortOrder}
+            >
+              <span aria-hidden="true">{sortToggleIcon}</span>
+              {activeSortCopy.text}
+            </button>
+          </div>
+        }
+      >
         <RecordList
-          items={patients}
+          className={sortListClassName}
+          items={sortedPatients}
           renderItem={(patient) => (
             <>
               <strong>{patient.name}</strong>
+              <span className="registration-date">
+                Registered {formatPatientRegisteredDate(patient.registeredAt)}
+              </span>
               <span>DOB {formatUkDate(patient.dob)}</span>
               <span>{patient.contact}</span>
               {patient.notes && <small>{patient.notes}</small>}
@@ -1392,7 +1638,7 @@ function AvailabilityPage({ availability, setAvailability, clinicians, clinician
   );
 }
 
-function AppointmentsPage({ appointments, setAppointments, patients, clinicians, patientLookup, clinicianLookup }) {
+function AppointmentsPage({ appointments, setAppointments, patients, clinicians, patientLookup, clinicianLookup, sortBy }) {
   const [form, setForm] = useState({
     patientId: patients[0]?.id || "",
     clinicianId: clinicians[0]?.id || "",
@@ -1401,6 +1647,25 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
     reason: "",
   });
   const [editingId, setEditingId] = useState(null);
+  const sortedAppointments = useMemo(() => {
+    const sorted = [...appointments];
+
+    if (sortBy === "registration") {
+      sorted.sort((first, second) =>
+        (first.patientRegisteredAt || "").localeCompare(second.patientRegisteredAt || "")
+      );
+    } else if (sortBy === "patientName") {
+      sorted.sort((first, second) =>
+        (first.patientName || "").localeCompare(second.patientName || "", undefined, { sensitivity: "base" })
+      );
+    } else {
+      sorted.sort((first, second) =>
+        `${first.date || ""} ${first.time || ""}`.localeCompare(`${second.date || ""} ${second.time || ""}`)
+      );
+    }
+
+    return sorted;
+  }, [appointments, sortBy]);
 
   const updateForm = (event) => {
     setForm({ ...form, [event.target.name]: event.target.value });
@@ -1422,11 +1687,11 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
     if (editingId) {
       setAppointments(
         appointments.map((appointment) =>
-          appointment.id === editingId ? { ...form, id: editingId } : appointment
+          appointment.id === editingId ? { ...appointment, ...form, id: editingId } : appointment
         )
       );
     } else {
-      setAppointments([...appointments, { ...form, id: makeId("appt") }]);
+      setAppointments([...appointments, { ...form, id: makeId("appt"), createdAt: new Date().toISOString() }]);
     }
     resetAppointmentForm();
   };
@@ -1494,11 +1759,24 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
 
       <Panel title="Appointment Schedule" subtitle={`${appointments.length} appointments`}>
         <RecordList
-          items={appointments}
+          items={sortedAppointments}
           renderItem={(appointment) => (
             <>
               <strong>{patientLookup[appointment.patientId]?.name || appointment.patientId}</strong>
-              <span>{clinicianLookup[appointment.clinicianId]?.name || appointment.clinicianId}</span>
+              <dl className="appointment-detail-meta">
+                <div>
+                  <dt>Registered</dt>
+                  <dd>{formatPatientRegisteredDate(appointment.patientRegisteredAt)}</dd>
+                </div>
+                <div>
+                  <dt>Appointment created</dt>
+                  <dd>{formatPatientRegisteredDate(appointment.createdAt || appointment.date)}</dd>
+                </div>
+                <div>
+                  <dt>Clinician assigned</dt>
+                  <dd>{clinicianLookup[appointment.clinicianId]?.name || appointment.clinicianId}</dd>
+                </div>
+              </dl>
               <span>{formatUkDate(appointment.date)} at {appointment.time}</span>
               <small>{appointment.reason}</small>
               <div className="record-actions">
@@ -1517,25 +1795,28 @@ function AppointmentsPage({ appointments, setAppointments, patients, clinicians,
   );
 }
 
-function Panel({ title, subtitle, children }) {
+function Panel({ title, subtitle, actions, children }) {
   return (
     <section className="panel">
       <div className="panel-header">
-        <h2>{title}</h2>
-        <p>{subtitle}</p>
+        <div>
+          <h2>{title}</h2>
+          <p>{subtitle}</p>
+        </div>
+        {actions && <div className="panel-actions">{actions}</div>}
       </div>
       {children}
     </section>
   );
 }
 
-function RecordList({ items, renderItem }) {
+function RecordList({ items, renderItem, className = "" }) {
   if (!items.length) {
     return <p className="empty-state">No records yet.</p>;
   }
 
   return (
-    <div className="record-list">
+    <div className={`record-list ${className}`.trim()}>
       {items.map((item) => (
         <article className="record-card" key={item.id}>
           {renderItem(item)}
