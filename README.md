@@ -3,7 +3,7 @@
 [![CodeQL](https://github.com/SOliv1/lumen-appointments/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/SOliv1/lumen-appointments/actions/workflows/codeql-analysis.yml)
 
  ## LUMEN APPOINTMENT PLANNER 
- ### VIEW THE LIVE MODEL DEMO [HERE](https://serene-care-synchronicity.onrender.com)
+ ### VIEW THE LIVE MODEL DEMO [HERE]()
 
 
 
