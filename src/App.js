@@ -1392,20 +1392,39 @@ function getActiveRoleCheatSheet(pathname) {
 }
 
 function ModeWorkspace({ mode, children }) {
+  const [pathwayOpen, setPathwayOpen] = useState(false);
+
   return (
-    <div className={`mode-workspace mode-workspace-${mode}`}>
-      <AppointmentPathwayRail mode={mode} />
+    <div className={`mode-workspace mode-workspace-${mode} ${pathwayOpen ? "pathway-open" : "pathway-closed"}`}>
+      <div className="pathway-reminder">
+        <button
+          type="button"
+          className={`pathway-toggle pathway-toggle-${mode}`}
+          onClick={() => setPathwayOpen((open) => !open)}
+          aria-expanded={pathwayOpen}
+        >
+          {pathwayOpen ? "Hide Appointment Pathway" : "Show Appointment Pathway"}
+        </button>
+      </div>
+      {pathwayOpen && (
+        <AppointmentPathwayRail mode={mode} onClose={() => setPathwayOpen(false)} />
+      )}
       <div className="mode-workspace-main">{children}</div>
     </div>
   );
 }
 
-function AppointmentPathwayRail({ mode }) {
+function AppointmentPathwayRail({ mode, onClose }) {
   const isPractice = mode === "practice";
 
   return (
     <aside className={`appointment-pathway-rail ${isPractice ? "practice" : "live"}`} aria-label="Appointment pathway">
-      <h2>Appointment Pathway</h2>
+      <div className="appointment-pathway-header">
+        <h2>Appointment Pathway</h2>
+        <button type="button" className="pathway-close" onClick={onClose} aria-label="Close appointment pathway">
+          Close
+        </button>
+      </div>
       <ol>
         {APPOINTMENT_PATHWAY_STEPS.map((step, index) => (
           <li key={step}>
