@@ -48,7 +48,7 @@ The live version is the professional working platform.
 > "We are not building software.
 > We are building confidence, clarity and continuity for people at moments when they most need reassurance."
 >
-[Live Preview](https://serene-care-synchronicity.onrender.com/availability)
+[Live Preview](https://serene-care-synchronicity.onrender.com)
 
 Creating a calmer, smarter and more compassionate healthcare journey by connecting patients, clinicians and healthcare services through intelligent coordination and communication.”
 
