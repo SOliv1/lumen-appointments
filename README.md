@@ -1,6 +1,10 @@
-# SereneCare Sync
+# Lumen Appointment Planner
+
+[![CodeQL](https://github.com/SOliv1/lumen-appointments/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/SOliv1/lumen-appointments/actions/workflows/codeql-analysis.yml)
 
 This model View Live Demo [Here](https://serene-care-synchronicity.onrender.com/)
+
+
 
  This should be treated as a **showcase and training prototype**. Its job is to help a healthcare administrator understand:
 
