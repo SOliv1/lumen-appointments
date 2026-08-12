@@ -40,6 +40,42 @@ textarea {
   min-height: 100vh;
 }
 
+.app-shell-live {
+  background: #f7f9fa;
+}
+
+.app-shell-practice {
+  position: relative;
+  background:
+    linear-gradient(180deg, rgba(238, 247, 255, 0.78), rgba(255, 247, 223, 0.72)),
+    var(--page);
+}
+
+.app-shell-practice::after,
+.app-shell-live::after {
+  position: fixed;
+  right: clamp(16px, 4vw, 42px);
+  bottom: 104px;
+  z-index: 5;
+  pointer-events: none;
+  transform: rotate(-8deg);
+  font-size: clamp(1.15rem, 3vw, 2rem);
+  font-weight: 900;
+  letter-spacing: 0;
+  opacity: 0.12;
+  text-transform: uppercase;
+}
+
+.app-shell-practice::after {
+  content: "Practice - mock data";
+  color: #7b5a14;
+}
+
+.app-shell-live::after {
+  content: "Live data";
+  color: #315d45;
+}
+
 .login-splash {
   position: relative;
   min-height: 100vh;
@@ -162,6 +198,17 @@ textarea {
   backdrop-filter: blur(16px);
 }
 
+.app-shell-live .maskable-app-header {
+  background: rgba(255, 255, 255, 0.98);
+}
+
+.app-shell-practice .maskable-app-header {
+  background:
+    linear-gradient(90deg, rgba(238, 247, 255, 0.96), rgba(255, 247, 223, 0.94)),
+    var(--season-banner) center/cover;
+  border-bottom-color: #c5d9ef;
+}
+
 .app-brand-block {
   display: flex;
   gap: 12px;
@@ -250,6 +297,36 @@ textarea {
   gap: 16px;
   align-items: center;
   justify-content: flex-end;
+}
+
+.header-mode-badge,
+.nav-mode-badge,
+.footer-mode-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.header-mode-badge-live,
+.nav-mode-badge-live,
+.footer-mode-badge-live {
+  border: 1px solid #b7d5cf;
+  background: #e5f1e8;
+  color: #315d45;
+}
+
+.header-mode-badge-practice,
+.nav-mode-badge-practice,
+.footer-mode-badge-practice {
+  border: 1px solid #d8b46a;
+  background: #fff2cc;
+  color: #7b5a14;
 }
 
 .app-sort-control,
@@ -433,15 +510,411 @@ textarea {
   border-radius: 6px;
 }
 
+.app-shell-live .app-nav {
+  background: rgba(247, 249, 250, 0.96);
+  border-bottom-color: #d6dee7;
+}
+
+.app-shell-practice .app-nav {
+  background: rgba(245, 250, 255, 0.96);
+  border-bottom-color: #c5d9ef;
+}
+
 .app-nav a:hover,
 .app-nav a.active {
   background: #f0e5df;
   color: #7b5360;
 }
 
+.cheat-sheet-nav {
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.cheat-sheet-trigger {
+  min-height: 40px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--plum);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.cheat-sheet-trigger:hover,
+.cheat-sheet-trigger[aria-expanded="true"] {
+  background: #f0e5df;
+  color: #7b5360;
+}
+
+.cheat-sheet-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 25;
+  display: grid;
+  gap: 4px;
+  width: 240px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 18px 42px rgba(47, 68, 85, 0.16);
+}
+
+.cheat-sheet-menu button {
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 800;
+  text-align: left;
+  cursor: pointer;
+}
+
+.cheat-sheet-menu button:hover {
+  background: #f1f8f3;
+}
+
 .workspace {
   width: min(1180px, calc(100% - 32px));
   margin: 32px auto 56px;
+}
+
+.role-cheat-sheet-bar {
+  display: flex;
+  justify-content: flex-end;
+  margin: 0 0 14px;
+}
+
+.mode-workspace {
+  display: grid;
+  grid-template-columns: 238px minmax(0, 1fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.mode-workspace-main {
+  min-width: 0;
+}
+
+.appointment-pathway-rail {
+  position: sticky;
+  top: 146px;
+  display: grid;
+  gap: 14px;
+  max-height: calc(100vh - 170px);
+  padding: 16px;
+  overflow: auto;
+  border: 1px solid #d6dee7;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 18px 42px rgba(47, 68, 85, 0.08);
+}
+
+.appointment-pathway-rail.practice {
+  border-color: #c5d9ef;
+  background: #f3f8ff;
+}
+
+.appointment-pathway-rail h2 {
+  margin: 0;
+  color: var(--plum);
+  font-size: 1rem;
+}
+
+.appointment-pathway-rail ol {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.appointment-pathway-rail li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 3px 8px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid #d6dee7;
+  border-radius: 8px;
+  background: #f7f9fa;
+}
+
+.appointment-pathway-rail.live li {
+  grid-template-columns: 18px 1fr;
+}
+
+.appointment-pathway-rail.practice li {
+  border-color: #c5d9ef;
+  background: #ffffff;
+}
+
+.pathway-index {
+  grid-row: span 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: #3a7f8f;
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.pathway-status-dot {
+  grid-row: span 2;
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin: 8px 0 0 4px;
+  border-radius: 999px;
+  background: #3a7f8f;
+  box-shadow: 0 0 0 4px #e5f1e8;
+}
+
+.appointment-pathway-rail.practice .pathway-index {
+  background: #9d7b2f;
+}
+
+.appointment-pathway-rail strong {
+  color: var(--ink);
+  font-size: 0.88rem;
+}
+
+.appointment-pathway-rail small {
+  justify-self: start;
+  padding: 3px 7px;
+  border-radius: 999px;
+  background: #e5f1e8;
+  color: #477856;
+  font-size: 0.68rem;
+  font-weight: 900;
+}
+
+.appointment-pathway-rail.practice small {
+  background: #fff2cc;
+  color: #7b5a14;
+}
+
+.mode-panel {
+  display: grid;
+  gap: 18px;
+}
+
+.mode-header,
+.practice-mode-hero {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px;
+  border-radius: 8px;
+}
+
+.live-mode-header {
+  border: 1px solid #d6dee7;
+  border-left: 10px solid #3a7f8f;
+  background: #f7f9fa;
+}
+
+.practice-mode-hero {
+  position: sticky;
+  top: 146px;
+  z-index: 12;
+  border: 1px solid #c5d9ef;
+  border-left: 10px solid #d8a640;
+  background: linear-gradient(90deg, #eef7ff, #fff7df);
+  box-shadow: 0 14px 30px rgba(89, 103, 125, 0.1);
+}
+
+.mode-header h1,
+.practice-mode-hero h2 {
+  margin: 0;
+  color: var(--plum);
+  font-size: 1.48rem;
+}
+
+.mode-header p:last-child,
+.practice-mode-hero p:last-child {
+  margin: 6px 0 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.live-data-indicator {
+  flex: 0 0 auto;
+  padding: 9px 12px;
+  border: 1px solid #b7d5cf;
+  border-radius: 999px;
+  background: #e5f1e8;
+  color: #315d45;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.live-data-empty-warning {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid #d6dee7;
+  border-left: 8px solid #3a7f8f;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.live-data-empty-warning strong {
+  color: var(--ink);
+}
+
+.live-data-empty-warning span {
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.practice-mode-hero-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.mode-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(150px, 1fr));
+  gap: 12px;
+}
+
+.mode-stat {
+  display: grid;
+  gap: 4px;
+  padding: 16px;
+  border: 1px solid #d6dee7;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.mode-stat span {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.mode-stat strong {
+  color: var(--ink);
+  font-size: 1.7rem;
+}
+
+.mode-stat small {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.live-booking-actions {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+  gap: 14px;
+}
+
+.mock-badge-row {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.mock-badge-row span {
+  padding: 5px 9px;
+  border: 1px solid #d8b46a;
+  border-radius: 999px;
+  background: #fff2cc;
+  color: #7b5a14;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.practice-mock-warning {
+  display: inline-flex;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid #d8b46a;
+  border-radius: 8px;
+  background: #fff2cc;
+  color: #7b5a14;
+  font-size: 0.86rem;
+}
+
+.cheat-sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(14, 27, 47, 0.34);
+}
+
+.cheat-sheet-drawer {
+  width: min(460px, 100%);
+  height: 100%;
+  padding: 22px;
+  overflow: auto;
+  border-left: 1px solid #d6dee7;
+  background: #ffffff;
+  box-shadow: -18px 0 42px rgba(14, 27, 47, 0.18);
+}
+
+.cheat-sheet-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.cheat-sheet-drawer h2,
+.cheat-sheet-drawer h3 {
+  margin: 0;
+  color: var(--plum);
+}
+
+.cheat-sheet-drawer section {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.cheat-sheet-block {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface-strong);
+}
+
+.cheat-sheet-block strong {
+  color: var(--ink);
+}
+
+.cheat-sheet-block ul {
+  display: grid;
+  gap: 5px;
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.4;
 }
 
 .availability-command-bar {
@@ -712,6 +1185,18 @@ textarea {
 .journey-start-card span {
   color: var(--muted);
   line-height: 1.45;
+}
+
+.practice-card-badge {
+  justify-self: start;
+  padding: 4px 8px;
+  border: 1px solid #d8b46a;
+  border-radius: 999px;
+  background: #fff2cc;
+  color: #7b5a14;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
 }
 
 .journey-start-card ul {
@@ -1372,8 +1857,46 @@ textarea:focus {
     top: 72px;
   }
 
+  .cheat-sheet-menu {
+    left: 0;
+    right: auto;
+  }
+
   .hero {
     min-height: 260px;
+  }
+
+  .mode-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .appointment-pathway-rail,
+  .practice-mode-hero {
+    position: static;
+    max-height: none;
+  }
+
+  .appointment-pathway-rail ol {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mode-header,
+  .practice-mode-hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .practice-mode-hero-actions {
+    justify-content: stretch;
+  }
+
+  .practice-mode-hero-actions .btn {
+    flex: 1 1 180px;
+  }
+
+  .mode-stats-grid,
+  .live-booking-actions {
+    grid-template-columns: 1fr;
   }
 
   .availability-command-bar {

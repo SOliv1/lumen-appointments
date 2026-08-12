@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, NavLink, Redirect, Route, Switch } from "react-router-dom";
+import { Link, NavLink, Redirect, Route, Switch, useLocation } from "react-router-dom";
 import "./App.css";
 import "./styles/concern.css";
 import ConcernList from "./concern/ConcernList";
@@ -15,6 +15,8 @@ import initialPatients from "./mockups/patients.json";
 import { formatPatientStoryDate } from "./dateUtils";
 
 const ROUTES = {
+  LIVE_BOOKING: "/live-booking",
+  PRACTICE_MODE: "/practice-mode",
   PATIENTS: "/patients",
   CLINICIANS: "/clinicians",
   AVAILABILITY: "/availability",
@@ -26,6 +28,26 @@ const ROUTES = {
   ADMINISTRATION: "/administration",
 };
 
+const APPOINTMENT_PATHWAY_STEPS = [
+  "Registration",
+  "Triage",
+  "Booking",
+  "Confirmation",
+  "Care",
+  "Follow-up",
+  "Closure",
+];
+
+const LIVE_PATHWAY_STATUSES = [
+  "Intake open",
+  "4 awaiting review",
+  "Slots updating",
+  "2 outstanding",
+  "In clinic",
+  "Due today",
+  "Ready to close",
+];
+
 const PATIENT_SORT_STORAGE_KEY = "lumenAppointmentsPatientSort";
 const DEFAULT_PATIENT_SORT = {
   by: "registration",
@@ -33,6 +55,7 @@ const DEFAULT_PATIENT_SORT = {
 };
 
 const LOGIN_STORAGE_KEY = "lumenAppointmentsSession";
+const LIVE_DATA_ENDPOINT = "/api/live-booking";
 const DEMO_LOGIN = {
   email: "demo@lumenappointments.local",
   password: "lumen-demo",
@@ -161,21 +184,6 @@ const EXTRA_MOCK_CLINICIANS = [
   { id: "mock-clinician-5", name: "Dr Marcus Hale", role: "Clinician", specialty: "General appointment clinic", contact: "07700 910204", registrationId: "4567890" },
   { id: "mock-clinician-6", name: "Priya Nair", role: "Pharmacist", specialty: "Medication support", contact: "07700 910205", registrationId: "EF123456" },
   { id: "mock-clinician-7", name: "Dr Laura Chen", role: "Clinician", specialty: "General appointment clinic", contact: "07700 910206", registrationId: "5678901" },
-];
-
-const MOCK_CONCERN_DESCRIPTIONS = [
-  "Persistent cough",
-  "Chest discomfort",
-  "Medication query",
-  "Low mood",
-  "Shortness of breath",
-  "Pain in lower back",
-  "Blood pressure follow-up",
-  "Diabetes review",
-  "Child fever advice",
-  "Appointment time confusion",
-  "Test result query",
-  "Repeat prescription request",
 ];
 
 const INITIAL_MOCK_CONCERNS = [
@@ -622,6 +630,7 @@ const buildPracticeScenario = (levelId) => {
 };
 
 function App() {
+  const location = useLocation();
   const currentSeasonBanner = getCurrentSeasonBanner();
   const [session, setSession] = useState(() => {
     try {
@@ -634,11 +643,17 @@ function App() {
   const [practiceLevelId, setPracticeLevelId] = useState("level-1");
   const initialPracticeScenario = useMemo(() => buildPracticeScenario("level-1"), []);
   const [patients, setPatients] = useState(initialPracticeScenario.patients);
-  const [clinicians, setClinicians] = useState(initialPracticeScenario.clinicians);
   const [availability, setAvailability] = useState(initialPracticeScenario.availability);
   const [appointments, setAppointments] = useState(initialPracticeScenario.appointments);
   const [concerns, setConcerns] = useState(initialPracticeScenario.concerns);
+  const [livePatients, setLivePatients] = useState([]);
+  const [liveClinicians, setLiveClinicians] = useState([]);
+  const [liveAvailability, setLiveAvailability] = useState([]);
+  const [liveAppointments, setLiveAppointments] = useState([]);
+  const [liveConcerns, setLiveConcerns] = useState([]);
+  const [liveDataStatus, setLiveDataStatus] = useState("loading");
   const [appSortBy, setAppSortBy] = useState("nextAppointment");
+  const [cheatSheetsOpen, setCheatSheetsOpen] = useState(false);
   const [activityLog, setActivityLog] = useState([
     {
       id: "practice-log-start",
@@ -651,29 +666,33 @@ function App() {
     () => Object.fromEntries(patients.map((patient) => [patient.id, patient])),
     [patients]
   );
-  const clinicianLookup = useMemo(
-    () => Object.fromEntries(clinicians.map((clinician) => [clinician.id, clinician])),
-    [clinicians]
+  const livePatientLookup = useMemo(
+    () => Object.fromEntries(livePatients.map((patient) => [patient.id, patient])),
+    [livePatients]
   );
-  const concernListItems = useMemo(
+  const liveClinicianLookup = useMemo(
+    () => Object.fromEntries(liveClinicians.map((clinician) => [clinician.id, clinician])),
+    [liveClinicians]
+  );
+  const liveConcernListItems = useMemo(
     () =>
-      concerns.map((concern) => ({
+      liveConcerns.map((concern) => ({
         ...concern,
-        patientName: patientLookup[concern.patientId]?.name || concern.patientId,
-        patientRegisteredAt: patientLookup[concern.patientId]?.registeredAt,
+        patientName: livePatientLookup[concern.patientId]?.name || concern.patientId,
+        patientRegisteredAt: livePatientLookup[concern.patientId]?.registeredAt,
         notes: concern.notes || buildInitialConcernNotes(concern),
       })),
-    [concerns, patientLookup]
+    [liveConcerns, livePatientLookup]
   );
-  const appointmentListItems = useMemo(
+  const liveAppointmentListItems = useMemo(
     () =>
-      appointments.map((appointment) => ({
+      liveAppointments.map((appointment) => ({
         ...appointment,
-        patientName: patientLookup[appointment.patientId]?.name || appointment.patientId,
-        patientRegisteredAt: patientLookup[appointment.patientId]?.registeredAt,
+        patientName: livePatientLookup[appointment.patientId]?.name || appointment.patientId,
+        patientRegisteredAt: livePatientLookup[appointment.patientId]?.registeredAt,
         notes: appointment.notes || buildInitialAppointmentNotes(appointment),
       })),
-    [appointments, patientLookup]
+    [liveAppointments, livePatientLookup]
   );
   const headerRegisteredAt = useMemo(() => {
     const registeredPatients = patients
@@ -682,6 +701,63 @@ function App() {
 
     return registeredPatients[0]?.registeredAt;
   }, [patients]);
+  const liveHeaderRegisteredAt = useMemo(() => {
+    const registeredPatients = livePatients
+      .filter((patient) => patient.registeredAt)
+      .sort((first, second) => second.registeredAt.localeCompare(first.registeredAt));
+
+    return registeredPatients[0]?.registeredAt;
+  }, [livePatients]);
+  const activeRoleCheatSheet = getActiveRoleCheatSheet(location.pathname);
+  const activeMode = location.pathname.startsWith(ROUTES.PRACTICE_MODE) ? "practice" : "live";
+  const activeRegisteredAt = activeMode === "practice" ? headerRegisteredAt : liveHeaderRegisteredAt;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadLiveData = async () => {
+      setLiveDataStatus("loading");
+
+      try {
+        const response = await fetch(LIVE_DATA_ENDPOINT, {
+          headers: { Accept: "application/json" },
+        });
+        const contentType = response.headers.get("content-type") || "";
+
+        if (!response.ok || !contentType.includes("application/json")) {
+          throw new Error("Live data endpoint is not connected.");
+        }
+
+        const data = await response.json();
+
+        if (cancelled) {
+          return;
+        }
+
+        setLivePatients(Array.isArray(data.patients) ? data.patients : []);
+        setLiveClinicians(Array.isArray(data.clinicians) ? data.clinicians : []);
+        setLiveAvailability(Array.isArray(data.availability) ? data.availability : []);
+        setLiveAppointments(Array.isArray(data.appointments) ? data.appointments : []);
+        setLiveConcerns(Array.isArray(data.concerns) ? data.concerns : []);
+        setLiveDataStatus("connected");
+      } catch (error) {
+        if (!cancelled) {
+          setLivePatients([]);
+          setLiveClinicians([]);
+          setLiveAvailability([]);
+          setLiveAppointments([]);
+          setLiveConcerns([]);
+          setLiveDataStatus("not-connected");
+        }
+      }
+    };
+
+    loadLiveData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const handleLogin = (credentials) => {
     const normalisedEmail = credentials.email.trim().toLowerCase();
@@ -734,38 +810,6 @@ function App() {
     recordPracticeEvent(`Appointment ${id} updated.`);
   };
 
-  const addConcernNote = (id, note) => {
-    const existingConcern = concerns.find((concern) => concern.id === id);
-    const currentNotes = existingConcern?.notes || buildInitialConcernNotes(existingConcern || { id });
-
-    updateConcernJourney(id, {
-      notes: [
-        {
-          ...note,
-          id: note.id || makeId("note"),
-        },
-        ...currentNotes,
-      ],
-    });
-    recordPracticeEvent(`${note.type} note added to concern ${id}.`);
-  };
-
-  const addAppointmentNote = (id, note) => {
-    const existingAppointment = appointments.find((appointment) => appointment.id === id);
-    const currentNotes = existingAppointment?.notes || buildInitialAppointmentNotes(existingAppointment || { id });
-
-    updateAppointmentMovement(id, {
-      notes: [
-        {
-          ...note,
-          id: note.id || makeId("note"),
-        },
-        ...currentNotes,
-      ],
-    });
-    recordPracticeEvent(`${note.type} note added to appointment ${id}.`);
-  };
-
   const recordPracticeEvent = (text) => {
     setActivityLog((currentLog) => [
       { id: makeId("log"), at: new Date().toISOString(), text },
@@ -779,7 +823,6 @@ function App() {
 
     setPracticeLevelId(level.id);
     setPatients(scenario.patients);
-    setClinicians(scenario.clinicians);
     setAvailability(scenario.availability);
     setAppointments(scenario.appointments);
     setConcerns(scenario.concerns);
@@ -1029,15 +1072,15 @@ function App() {
     recordPracticeEvent("No urgent practice step is waiting. The board is stable.");
   };
 
-  const addConcern = (concern) => {
-    setConcerns((currentConcerns) => [
+  const addLiveConcern = (concern) => {
+    setLiveConcerns((currentConcerns) => [
       ...currentConcerns,
       {
         ...concern,
-        id: concern.id || makeId("concern"),
+        id: concern.id || makeId("live-concern"),
         patientId: concern.patientId || concern.patientName,
         status: concern.status || "Awaiting Review",
-        patientMessage: concern.patientMessage || "Staff should record a plain-language explanation before offering an appointment.",
+        patientMessage: concern.patientMessage || "Live concern recorded for authorised review.",
         confirmedTime: concern.confirmedTime || "Not confirmed yet",
         confirmationMethod: concern.confirmationMethod || "Not confirmed",
         staffScript: concern.staffScript || buildPatientScript({
@@ -1053,17 +1096,6 @@ function App() {
           redFlagCheck: "Not recorded",
           note: "Awaiting authorised triage.",
         },
-        clinicianStep: concern.clinicianStep || "Today's care queue",
-        clinicianContact: concern.clinicianContact || {
-          method: "Internal care queue",
-          sentTo: concern.triage?.route || "Unassigned clinician/team",
-          responseChannel: "Today's Care Queue",
-          notifiedBy: "Care Navigation Team",
-          clarificationContact: "Care Navigation Team",
-          escalationRoute: "Return to admin for clarification before clinical action",
-          queryStatus: "No clarification requested",
-        },
-        clinicalNote: concern.clinicalNote || "",
         communication: concern.communication || {
           patientInformed: false,
           by: "",
@@ -1071,24 +1103,6 @@ function App() {
           at: "",
           confirmationOutstanding: true,
         },
-        notes: concern.notes || [
-          {
-            id: makeId("note"),
-            type: "Patient concern",
-            text: concern.description || "Concern recorded.",
-            author: "Care Navigation Team",
-            visibility: "Internal",
-            createdAt: new Date().toISOString(),
-          },
-          {
-            id: makeId("note"),
-            type: "Communication",
-            text: concern.patientMessage || "Patient-facing factual note drafted.",
-            author: "Care Navigation Team",
-            visibility: "Patient-facing",
-            createdAt: new Date().toISOString(),
-          },
-        ],
         createdAt: concern.createdAt || new Date().toISOString(),
         matchedSlotId: concern.matchedSlotId || "",
         appointmentId: concern.appointmentId || "",
@@ -1107,15 +1121,16 @@ function App() {
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell app-shell-${activeMode}`}>
       <AppHeader
-        registeredAt={headerRegisteredAt}
+        registeredAt={activeRegisteredAt}
         seasonLabel={currentSeasonBanner.label}
         seasonImage={currentSeasonBanner.image}
         sortBy={appSortBy}
         onSortChange={setAppSortBy}
         userEmail={session.email}
         onLogout={handleLogout}
+        mode={activeMode}
       />
 
       <section className="hero" aria-label={`${currentSeasonBanner.label} care studio`}>
@@ -1134,8 +1149,11 @@ function App() {
       </section>
 
       <nav className="app-nav" aria-label="Primary navigation">
-        <NavLink to={ROUTES.JOURNEY_START} activeClassName="active">
-          Begin Care Journey
+        <NavLink to={ROUTES.LIVE_BOOKING} activeClassName="active">
+          Live Booking
+        </NavLink>
+        <NavLink to={ROUTES.PRACTICE_MODE} activeClassName="active">
+          Practice Mode
         </NavLink>
         <NavLink to={ROUTES.PATIENTS} activeClassName="active">
           Patients
@@ -1144,100 +1162,161 @@ function App() {
           Clinicians
         </NavLink>
         <NavLink to={ROUTES.CLINICIAN_QUEUE} activeClassName="active">
-          Today's Care Queue
+          Clinician Queue
         </NavLink>
         <NavLink to={ROUTES.ADMINISTRATION} activeClassName="active">
           Administration
         </NavLink>
+        <div className="cheat-sheet-nav">
+          <button
+            type="button"
+            className="cheat-sheet-trigger"
+            onClick={() => setCheatSheetsOpen((open) => !open)}
+            aria-expanded={cheatSheetsOpen}
+          >
+            Cheat Sheets
+          </button>
+          {cheatSheetsOpen && (
+            <div className="cheat-sheet-menu" role="menu">
+              <button type="button" onClick={() => setCheatSheetsOpen(false)}>Patient Care</button>
+              <button type="button" onClick={() => setCheatSheetsOpen(false)}>Clinician Queue</button>
+              <button type="button" onClick={() => setCheatSheetsOpen(false)}>Administration</button>
+              <button type="button" onClick={() => setCheatSheetsOpen(false)}>Practice Mode</button>
+              <button type="button" onClick={() => setCheatSheetsOpen(false)}>Appointment Pathway Map</button>
+            </div>
+          )}
+        </div>
         <NavLink to={ROUTES.AVAILABILITY} activeClassName="active">
-          Availability
+          Settings
         </NavLink>
-        <NavLink to={ROUTES.APPOINTMENTS} activeClassName="active">
-          Appointments
-        </NavLink>
+        <span className={`nav-mode-badge nav-mode-badge-${activeMode}`}>
+          {activeMode === "practice" ? "Mock data" : "Live data"}
+        </span>
       </nav>
 
       <main className="workspace">
+        {activeRoleCheatSheet && (
+          <div className="role-cheat-sheet-bar">
+            <button type="button" className="action-button" onClick={() => setCheatSheetsOpen(true)}>
+              {activeRoleCheatSheet}
+            </button>
+          </div>
+        )}
         <Switch>
           <Route exact path="/">
-            <Redirect to={ROUTES.JOURNEY_START} />
+            <Redirect to={ROUTES.LIVE_BOOKING} />
+          </Route>
+          <Route path={ROUTES.LIVE_BOOKING}>
+            <ModeWorkspace mode="live">
+              <LiveBookingDashboard
+                patients={livePatients}
+                clinicians={liveClinicians}
+                appointments={liveAppointmentListItems}
+                concerns={liveConcernListItems}
+                dataStatus={liveDataStatus}
+              />
+            </ModeWorkspace>
+          </Route>
+          <Route path={ROUTES.PRACTICE_MODE}>
+            <ModeWorkspace mode="practice">
+              <JourneyStart
+                activityLog={activityLog}
+                practiceLevelId={practiceLevelId}
+                practiceLevels={PRACTICE_LEVELS}
+                seasonLabel={currentSeasonBanner.label}
+                onPracticeLevelChange={changePracticeLevel}
+                onRunPracticeStep={runNextPracticeStep}
+                onResetPracticeBoard={resetPracticeBoard}
+              />
+            </ModeWorkspace>
           </Route>
           <Route path={ROUTES.PATIENTS}>
-            <PatientsPage patients={patients} setPatients={setPatients} />
+            <PatientsPage patients={livePatients} setPatients={setLivePatients} />
           </Route>
           <Route path={ROUTES.CLINICIANS}>
-            <CliniciansPage clinicians={clinicians} setClinicians={setClinicians} />
+            <CliniciansPage clinicians={liveClinicians} setClinicians={setLiveClinicians} />
           </Route>
           <Route path={ROUTES.JOURNEY_START}>
-            <JourneyStart
-              activityLog={activityLog}
-              practiceLevelId={practiceLevelId}
-              practiceLevels={PRACTICE_LEVELS}
-              onPracticeLevelChange={changePracticeLevel}
-              onRunPracticeStep={runNextPracticeStep}
-              onResetPracticeBoard={resetPracticeBoard}
-            />
+            <Redirect to={ROUTES.PRACTICE_MODE} />
           </Route>
           <Route path={ROUTES.NEW_CONCERN}>
             <NewConcern
-              addConcern={addConcern}
-              patients={patients}
-              descriptions={MOCK_CONCERN_DESCRIPTIONS}
+              addConcern={addLiveConcern}
+              patients={livePatients}
+              descriptions={[]}
             />
           </Route>
           <Route path={ROUTES.CONCERNS}>
             <ConcernList
-              concerns={concernListItems}
-              onAdvanceConcern={advanceConcernJourney}
-              onUpdateConcern={updateConcernJourney}
-              onAddConcernNote={addConcernNote}
+              concerns={liveConcernListItems}
+              onAdvanceConcern={() => {}}
+              onUpdateConcern={(id, changes) =>
+                setLiveConcerns((currentConcerns) =>
+                  currentConcerns.map((concern) =>
+                    concern.id === id ? { ...concern, ...changes } : concern
+                  )
+                )
+              }
+              onAddConcernNote={() => {}}
             />
           </Route>
           <Route path={ROUTES.CLINICIAN_QUEUE}>
             <ClinicianQueue
-              concerns={concernListItems}
-              patientLookup={patientLookup}
-              onUpdateClinicianJourney={updateConcernJourney}
-              onAddConcernNote={addConcernNote}
+              concerns={liveConcernListItems}
+              patientLookup={livePatientLookup}
+              onUpdateClinicianJourney={(id, changes) =>
+                setLiveConcerns((currentConcerns) =>
+                  currentConcerns.map((concern) =>
+                    concern.id === id ? { ...concern, ...changes } : concern
+                  )
+                )
+              }
+              onAddConcernNote={() => {}}
             />
           </Route>
           <Route path={ROUTES.ADMINISTRATION}>
             <AdminDashboard
-              concerns={concernListItems}
-              appointments={appointmentListItems}
-              availability={availability}
-              patientLookup={patientLookup}
-              clinicianLookup={clinicianLookup}
-              onAdvanceConcern={advanceConcernJourney}
-              onUpdateConcern={updateConcernJourney}
-              onUpdateAppointment={updateAppointmentMovement}
-              onAddConcernNote={addConcernNote}
-              onAddAppointmentNote={addAppointmentNote}
-              activityLog={activityLog}
-              practiceLevelId={practiceLevelId}
-              practiceLevels={PRACTICE_LEVELS}
-              onPracticeLevelChange={changePracticeLevel}
-              onRunPracticeStep={runNextPracticeStep}
-              onResetPracticeBoard={resetPracticeBoard}
+              concerns={liveConcernListItems}
+              appointments={liveAppointmentListItems}
+              availability={liveAvailability}
+              patientLookup={livePatientLookup}
+              clinicianLookup={liveClinicianLookup}
+              onAdvanceConcern={() => {}}
+              onUpdateConcern={(id, changes) =>
+                setLiveConcerns((currentConcerns) =>
+                  currentConcerns.map((concern) =>
+                    concern.id === id ? { ...concern, ...changes } : concern
+                  )
+                )
+              }
+              onUpdateAppointment={(id, changes) =>
+                setLiveAppointments((currentAppointments) =>
+                  currentAppointments.map((appointment) =>
+                    appointment.id === id ? { ...appointment, ...changes } : appointment
+                  )
+                )
+              }
+              onAddConcernNote={() => {}}
+              onAddAppointmentNote={() => {}}
             />
           </Route>
           <Route path={ROUTES.AVAILABILITY}>
             <AvailabilityPage
-              availability={availability}
-              setAvailability={setAvailability}
-              clinicians={clinicians}
-              clinicianLookup={clinicianLookup}
+              availability={liveAvailability}
+              setAvailability={setLiveAvailability}
+              clinicians={liveClinicians}
+              clinicianLookup={liveClinicianLookup}
             />
           </Route>
           <Route path={ROUTES.APPOINTMENTS}>
             <AppointmentsPage
-              appointments={appointments}
-              setAppointments={setAppointments}
-              availability={availability}
-              patients={patients}
-              clinicians={clinicians}
-              patientLookup={patientLookup}
-              clinicianLookup={clinicianLookup}
+              appointments={liveAppointments}
+              setAppointments={setLiveAppointments}
+              availability={liveAvailability}
+              patients={livePatients}
+              clinicians={liveClinicians}
+              patientLookup={livePatientLookup}
+              clinicianLookup={liveClinicianLookup}
               sortBy={appSortBy}
             />
           </Route>
@@ -1250,6 +1329,9 @@ function App() {
             <strong>Lumen Appointments</strong>
             <span>&copy; 2026 Lumen Appointments</span>
           </div>
+          <span className={`footer-mode-badge footer-mode-badge-${activeMode}`}>
+            {activeMode === "practice" ? "Practice Mode - mock data" : "Live Booking - real data only"}
+          </span>
 
           <nav className="footer-middle" aria-label="Footer links">
             <a href="#privacy-security">Privacy &amp; Security</a>
@@ -1267,6 +1349,7 @@ function App() {
           </a>
         </div>
       </footer>
+      <CheatSheetsDrawer open={cheatSheetsOpen} onClose={() => setCheatSheetsOpen(false)} />
     </div>
   );
 }
@@ -1290,6 +1373,180 @@ function getMockPatientEmail(patient) {
     .replace(/^\.+|\.+$/g, "");
 
   return `${namePart || "patient"}@lumen.example.mock`;
+}
+
+function getActiveRoleCheatSheet(pathname) {
+  if (pathname === ROUTES.CONCERNS || pathname === ROUTES.NEW_CONCERN) {
+    return "Patient Care Cheat Sheet";
+  }
+
+  if (pathname === ROUTES.CLINICIAN_QUEUE) {
+    return "Clinician Cheat Sheet";
+  }
+
+  if (pathname === ROUTES.ADMINISTRATION) {
+    return "Admin Cheat Sheet";
+  }
+
+  return "";
+}
+
+function ModeWorkspace({ mode, children }) {
+  return (
+    <div className={`mode-workspace mode-workspace-${mode}`}>
+      <AppointmentPathwayRail mode={mode} />
+      <div className="mode-workspace-main">{children}</div>
+    </div>
+  );
+}
+
+function AppointmentPathwayRail({ mode }) {
+  const isPractice = mode === "practice";
+
+  return (
+    <aside className={`appointment-pathway-rail ${isPractice ? "practice" : "live"}`} aria-label="Appointment pathway">
+      <h2>Appointment Pathway</h2>
+      <ol>
+        {APPOINTMENT_PATHWAY_STEPS.map((step, index) => (
+          <li key={step}>
+            {isPractice ? (
+              <span className="pathway-index">{index + 1}</span>
+            ) : (
+              <span className="pathway-status-dot" aria-hidden="true" />
+            )}
+            <strong>{step}</strong>
+            <small>{isPractice ? "Practice" : LIVE_PATHWAY_STATUSES[index]}</small>
+          </li>
+        ))}
+      </ol>
+    </aside>
+  );
+}
+
+function LiveBookingDashboard({ patients, clinicians, appointments, concerns, dataStatus }) {
+  const outstandingConfirmations = appointments.filter(
+    (appointment) => appointment.patientCommunicationNeeded || appointment.communication?.confirmationOutstanding
+  ).length;
+  const triageWaiting = concerns.filter((concern) =>
+    ["Awaiting Review", "Ready for Triage", "Needs Information"].includes(concern.status)
+  ).length;
+
+  return (
+    <section className="mode-panel live-mode-panel">
+      <div className="mode-header live-mode-header">
+        <div>
+          <p className="command-kicker">Live Booking</p>
+          <h1>Live Booking - Real Patients</h1>
+          <p>Neutral clinic workspace for active booking work. Mock data is blocked from this mode.</p>
+        </div>
+        <span className="live-data-indicator">This is live data</span>
+      </div>
+
+      {dataStatus !== "connected" && (
+        <div className="live-data-empty-warning">
+          <strong>No live patient data connected</strong>
+          <span>
+            Live Booking is intentionally empty until {LIVE_DATA_ENDPOINT} returns real records.
+            Practice mock data is not used as a fallback.
+          </span>
+        </div>
+      )}
+
+      <div className="mode-stats-grid">
+        <ModeStat label="Patients" value={patients.length} detail="Real patient records" />
+        <ModeStat label="Clinicians" value={clinicians.length} detail="Active rota staff" />
+        <ModeStat label="Triage" value={triageWaiting} detail="Real-time status" />
+        <ModeStat label="Confirmations" value={outstandingConfirmations} detail="Outstanding now" />
+      </div>
+
+      <section className="live-booking-actions" aria-label="Live booking entry points">
+        <Link to={ROUTES.CONCERNS} className="journey-start-card patient-start-card">
+          <strong>Patient Care</strong>
+          <span>Review real concerns, updates and patient-facing communication.</span>
+        </Link>
+        <Link to={ROUTES.CLINICIAN_QUEUE} className="journey-start-card clinician-start-card">
+          <strong>Clinician Queue</strong>
+          <span>See items needing authorised clinical attention.</span>
+        </Link>
+        <Link to={ROUTES.APPOINTMENTS} className="journey-start-card admin-start-card">
+          <strong>Booking Board</strong>
+          <span>Book, update and confirm appointments without practice controls.</span>
+        </Link>
+      </section>
+    </section>
+  );
+}
+
+function ModeStat({ label, value, detail }) {
+  return (
+    <article className="mode-stat">
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <small>{detail}</small>
+    </article>
+  );
+}
+
+function CheatSheetsDrawer({ open, onClose }) {
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <div className="cheat-sheet-backdrop" role="presentation" onClick={onClose}>
+      <aside
+        className="cheat-sheet-drawer"
+        aria-label="Cheat Sheets"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="cheat-sheet-drawer-header">
+          <h2>Cheat Sheets</h2>
+          <button type="button" className="action-button" onClick={onClose}>
+            Close
+          </button>
+        </div>
+        <section>
+          <h3>Role Cheat Sheets</h3>
+          <CheatSheetBlock
+            title="Patient Care"
+            items={["What you review", "What you update", "Key workflow steps"]}
+          />
+          <CheatSheetBlock
+            title="Clinician Queue"
+            items={["Items requiring attention", "Notes and handoffs", "Clinical-only workflow"]}
+          />
+          <CheatSheetBlock
+            title="Administration"
+            items={["Tasks and communications", "Appointment changes", "Coordination steps"]}
+          />
+        </section>
+        <section>
+          <h3>Practice Mode Cheat Sheets</h3>
+          <CheatSheetBlock
+            title="Practice Mode Overview"
+            items={["Scenario levels", "Run Next Step", "Reset Board"]}
+          />
+          <CheatSheetBlock
+            title="Appointment Pathway Map"
+            items={["Registration -> Triage -> Booking -> Confirmation -> Care -> Follow-up -> Closure"]}
+          />
+        </section>
+      </aside>
+    </div>
+  );
+}
+
+function CheatSheetBlock({ title, items }) {
+  return (
+    <article className="cheat-sheet-block">
+      <strong>{title}</strong>
+      <ul>
+        {items.map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+    </article>
+  );
 }
 
 function LoginSplash({ seasonLabel, seasonImage, onLogin }) {
@@ -1372,8 +1629,9 @@ function LoginSplash({ seasonLabel, seasonImage, onLogin }) {
   );
 }
 
-function AppHeader({ registeredAt, seasonLabel, seasonImage, sortBy, onSortChange, userEmail, onLogout }) {
+function AppHeader({ registeredAt, seasonLabel, seasonImage, sortBy, onSortChange, userEmail, onLogout, mode }) {
   const activeSortLabel = APP_SORT_OPTIONS.find((option) => option.value === sortBy)?.label || "Next Appointment";
+  const isPractice = mode === "practice";
 
   return (
     <header
@@ -1394,6 +1652,9 @@ function AppHeader({ registeredAt, seasonLabel, seasonImage, sortBy, onSortChang
       </div>
 
       <div className="app-header-actions">
+        <span className={`header-mode-badge header-mode-badge-${mode}`}>
+          {isPractice ? "Practice Mode - mock data" : "Live Booking - real data"}
+        </span>
         <label className="app-sort-control">
           <span aria-hidden="true">↕</span>
           <span className="app-sort-label">Sort:</span>

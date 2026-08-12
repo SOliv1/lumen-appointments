@@ -1,18 +1,42 @@
-import { Link } from "react-router-dom";
-
 function JourneyStart({
   activityLog = [],
   practiceLevelId,
   practiceLevels = [],
+  seasonLabel = "Seasonal",
   onPracticeLevelChange,
   onRunPracticeStep,
   onResetPracticeBoard,
 }) {
   return (
     <section className="journey-start">
+      <div className="practice-mode-hero">
+        <div>
+          <p className="command-kicker">{seasonLabel} tint</p>
+          <h2>Practice Mode - Training Only</h2>
+          <p>
+            Mock scenarios, practice badges and training controls stay visible
+            so this board cannot be mistaken for live booking work.
+          </p>
+          <strong className="practice-mock-warning">This is mock data - do not use for real bookings.</strong>
+        </div>
+        <div className="practice-mode-hero-actions">
+          <button type="button" className="btn btn-appointment" onClick={onRunPracticeStep}>
+            Run Next Practice Step
+          </button>
+          <button type="button" className="btn btn-quiet" onClick={onResetPracticeBoard}>
+            Reset Practice Board
+          </button>
+        </div>
+      </div>
+
       <div className="journey-start-header">
-        <p className="command-kicker">Shared care journey front door</p>
-        <h2>Begin Care Journey</h2>
+        <div className="mock-badge-row" aria-label="Practice mode mock data badges">
+          <span>Mock patients</span>
+          <span>Mock clinicians</span>
+          <span>Mock appointments</span>
+        </div>
+        <p className="command-kicker">Training journey front door</p>
+        <h2>Practice Pathway</h2>
         <p>
           Start from one place, then enter the pathway that matches your role.
           Each view keeps the same journey visible without giving staff information
@@ -33,7 +57,6 @@ function JourneyStart({
 
       <div className="journey-start-grid">
         <JourneyStartCard
-          to="/concern/new"
           className="patient-start-card"
           title="Patient Care"
           subtitle="Create a concern and begin the patient pathway."
@@ -44,7 +67,6 @@ function JourneyStart({
           ]}
         />
         <JourneyStartCard
-          to="/clinician-queue"
           className="clinician-start-card"
           title="Clinician Care Queue"
           subtitle="Review only the clinical items that need attention."
@@ -55,7 +77,6 @@ function JourneyStart({
           ]}
         />
         <JourneyStartCard
-          to="/administration"
           className="admin-start-card"
           title="Administration"
           subtitle="Coordinate the pathway and prevent avoidable confusion."
@@ -170,10 +191,10 @@ function PracticeControls({
       </div>
       <div className="practice-actions">
         <button type="button" className="btn btn-appointment" onClick={onRunPracticeStep}>
-          Run next practice step
+          Run Next Practice Step
         </button>
         <button type="button" className="btn btn-quiet" onClick={onResetPracticeBoard}>
-          Reset practice board
+          Reset Practice Board
         </button>
       </div>
       <div className="practice-log">
@@ -208,17 +229,18 @@ function formatLogTime(value) {
   });
 }
 
-function JourneyStartCard({ to, className, title, subtitle, items }) {
+function JourneyStartCard({ className, title, subtitle, items }) {
   return (
-    <Link to={to} className={`journey-start-card ${className}`}>
+    <article className={`journey-start-card ${className}`}>
       <strong>{title}</strong>
+      <small className="practice-card-badge">Practice</small>
       <span>{subtitle}</span>
       <ul>
         {items.map((item) => (
           <li key={item}>{item}</li>
         ))}
       </ul>
-    </Link>
+    </article>
   );
 }
 
