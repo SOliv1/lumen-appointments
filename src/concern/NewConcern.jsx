@@ -7,7 +7,7 @@ function buildDefaultPatientMessage(description) {
   return `The request is recorded as ${recordedReason}. Staff can confirm the recorded reason, the current appointment status, and that the concern is being handled through the care journey.`;
 }
 
-function NewConcern({ addConcern, patients = [], descriptions = [] }) {
+function NewConcern({ addConcern, patients = [], descriptions = [], returnTo = "/concerns" }) {
   const history = useHistory();
 
   const [patientId, setPatientId] = useState(patients[0]?.id || "");
@@ -61,7 +61,7 @@ function NewConcern({ addConcern, patients = [], descriptions = [] }) {
 
     addConcern?.(newConcern);
 
-    history.push("/concerns");
+    history.push(returnTo);
   }
 
   return (

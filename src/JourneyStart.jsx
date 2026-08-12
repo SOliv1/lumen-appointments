@@ -1,8 +1,11 @@
+import { Link } from "react-router-dom";
+
 function JourneyStart({
   activityLog = [],
   practiceLevelId,
   practiceLevels = [],
   seasonLabel = "Seasonal",
+  routes = {},
   onPracticeLevelChange,
   onRunPracticeStep,
   onResetPracticeBoard,
@@ -12,7 +15,7 @@ function JourneyStart({
       <div className="practice-mode-hero">
         <div>
           <p className="command-kicker">{seasonLabel} tint</p>
-          <h2>Practice Mode - Training Only</h2>
+          <h2>PRACTICE MODE - TRAINING ONLY</h2>
           <p>
             Mock scenarios, practice badges and training controls stay visible
             so this board cannot be mistaken for live booking work.
@@ -57,6 +60,7 @@ function JourneyStart({
 
       <div className="journey-start-grid">
         <JourneyStartCard
+          to={routes.newConcern}
           className="patient-start-card"
           title="Patient Care"
           subtitle="Create a concern and begin the patient pathway."
@@ -67,6 +71,7 @@ function JourneyStart({
           ]}
         />
         <JourneyStartCard
+          to={routes.clinicianQueue}
           className="clinician-start-card"
           title="Clinician Care Queue"
           subtitle="Review only the clinical items that need attention."
@@ -77,6 +82,7 @@ function JourneyStart({
           ]}
         />
         <JourneyStartCard
+          to={routes.admin}
           className="admin-start-card"
           title="Administration"
           subtitle="Coordinate the pathway and prevent avoidable confusion."
@@ -229,9 +235,12 @@ function formatLogTime(value) {
   });
 }
 
-function JourneyStartCard({ className, title, subtitle, items }) {
+function JourneyStartCard({ to, className, title, subtitle, items }) {
+  const CardElement = to ? Link : "article";
+  const cardProps = to ? { to } : {};
+
   return (
-    <article className={`journey-start-card ${className}`}>
+    <CardElement className={`journey-start-card ${className}`} {...cardProps}>
       <strong>{title}</strong>
       <small className="practice-card-badge">Practice</small>
       <span>{subtitle}</span>
@@ -240,7 +249,7 @@ function JourneyStartCard({ className, title, subtitle, items }) {
           <li key={item}>{item}</li>
         ))}
       </ul>
-    </article>
+    </CardElement>
   );
 }
 

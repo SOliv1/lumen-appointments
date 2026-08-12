@@ -45,6 +45,8 @@ function AdminDashboard({
   onPracticeLevelChange,
   onRunPracticeStep,
   onResetPracticeBoard,
+  routes = {},
+  onRequestPracticeExit,
 }) {
   const releasedSlots = availability
     .filter((slot) => slot.status === "Available")
@@ -53,7 +55,7 @@ function AdminDashboard({
     ["Changed", "Cancelled", "Released"].includes(appointment.status)
   );
   const communications = concerns.slice(0, 8);
-  const outstandingTasks = buildOutstandingTasks(concerns, appointments, patientLookup);
+  const outstandingTasks = buildOutstandingTasks(concerns, appointments, patientLookup, routes);
   const primaryTask =
     outstandingTasks.find((task) => task.priorityClass === "clarify" || task.priorityClass === "query") ||
     outstandingTasks[0];
@@ -71,6 +73,21 @@ function AdminDashboard({
   );
   const activePracticeLevel =
     practiceLevels.find((level) => level.id === practiceLevelId) || practiceLevels[0];
+  const pathwayRoutes = {
+    patient: routes.concerns || "/concerns",
+    clinician: routes.clinicianQueue || "/clinician-queue",
+    availability: routes.settings || "/availability",
+  };
+  const isPracticeMode = Boolean(practiceLevels.length);
+  const requestPracticeExit = (event, targetRoute) => {
+    if (!isPracticeMode || !targetRoute || targetRoute.startsWith("/practice-mode")) {
+      return;
+    }
+
+    if (onRequestPracticeExit) {
+      onRequestPracticeExit(event, targetRoute);
+    }
+  };
 
   return (
     <section className="admin-dashboard">
@@ -84,13 +101,25 @@ function AdminDashboard({
           </p>
         </div>
         <div className="admin-pathway-links" aria-label="Administration pathway links">
-          <Link to="/concerns" className="admin-link patient-pathway">
+          <Link
+            to={pathwayRoutes.patient}
+            className="admin-link patient-pathway"
+            onClick={(event) => requestPracticeExit(event, pathwayRoutes.patient)}
+          >
             Patient pathway
           </Link>
-          <Link to="/clinician-queue" className="admin-link clinician-pathway">
+          <Link
+            to={pathwayRoutes.clinician}
+            className="admin-link clinician-pathway"
+            onClick={(event) => requestPracticeExit(event, pathwayRoutes.clinician)}
+          >
             Clinician pathway
           </Link>
-          <Link to="/availability" className="admin-link slot-pathway">
+          <Link
+            to={pathwayRoutes.availability}
+            className="admin-link slot-pathway"
+            onClick={(event) => requestPracticeExit(event, pathwayRoutes.availability)}
+          >
             Availability
           </Link>
         </div>
@@ -206,7 +235,11 @@ function AdminDashboard({
                         {task.actionLabel}
                       </button>
                     )}
-                    <Link to={task.route} className="action-button">
+                    <Link
+                      to={task.route}
+                      className="action-button"
+                      onClick={(event) => requestPracticeExit(event, task.route)}
+                    >
                       Open pathway
                     </Link>
                   </div>
@@ -565,7 +598,14 @@ function AppointmentMovementForm({ appointment, patientRegisteredAt, clinicianNa
   );
 }
 
-function buildOutstandingTasks(concerns, appointments = [], patientLookup = {}) {
+function buildOutstandingTasks(concerns, appointments = [], patientLookup = {}, routes = {}) {
+  const taskRoutes = {
+    concerns: routes.concerns || "/concerns",
+    availability: routes.settings || "/availability",
+    clinicianQueue: routes.clinicianQueue || "/clinician-queue",
+    appointments: routes.bookingBoard || "/appointments",
+  };
+
   const concernTasks = concerns.flatMap((concern) => {
     const patientName = concern.patientName || concern.patientId;
     const patientRegisteredAt = concern.patientRegisteredAt || patientLookup[concern.patientId]?.registeredAt;
@@ -583,7 +623,7 @@ function buildOutstandingTasks(concerns, appointments = [], patientLookup = {}) 
         from: "Patient concern record",
         to: "Administration",
         channel: "Internal admin dashboard",
-        route: "/concerns",
+        route: taskRoutes.concerns,
         actionLabel: "Review complete - ready for triage",
         action: (onAdvanceConcern) => onAdvanceConcern(concern.id, "triage"),
       });
@@ -601,7 +641,7 @@ function buildOutstandingTasks(concerns, appointments = [], patientLookup = {}) 
         from: concern.clarificationFrom || "Patient or original admin record",
         to: "Administration",
         channel: concern.clarificationChannel || "Phone, SMS, email, portal, or walk-in note",
-        route: "/concerns",
+        route: taskRoutes.concerns,
         actionLabel: "Information recorded - ready for triage",
         action: (_onAdvanceConcern, onUpdateConcern) =>
           onUpdateConcern(concern.id, {
@@ -624,7 +664,7 @@ function buildOutstandingTasks(concerns, appointments = [], patientLookup = {}) 
         from: "Triage outcome",
         to: "Availability",
         channel: "Internal appointment board",
-        route: "/availability",
+        route: taskRoutes.availability,
         actionLabel: "Match to slot",
         action: (onAdvanceConcern) => onAdvanceConcern(concern.id, "match"),
       });
@@ -642,7 +682,7 @@ function buildOutstandingTasks(concerns, appointments = [], patientLookup = {}) 
         from: concern.clinicianContact?.sentTo || "Clinician/team",
         to: concern.clinicianContact?.clarificationContact || "Care Navigation Team",
         channel: concern.clinicianContact?.responseChannel || "Today's Care Queue",
-        route: "/clinician-queue",
+        route: taskRoutes.clinicianQueue,
         actionLabel: "Mark answered",
         action: (_onAdvanceConcern, onUpdateConcern) =>
           onUpdateConcern(concern.id, {
@@ -666,7 +706,7 @@ function buildOutstandingTasks(concerns, appointments = [], patientLookup = {}) 
         from: "Administration",
         to: "Patient",
         channel: concern.confirmationMethod || "Phone, SMS, letter, email, or portal",
-        route: "/concerns",
+        route: taskRoutes.concerns,
         actionLabel: "Mark contacted",
         action: (_onAdvanceConcern, onUpdateConcern) =>
           onUpdateConcern(concern.id, {
@@ -691,7 +731,7 @@ function buildOutstandingTasks(concerns, appointments = [], patientLookup = {}) 
       from: "Administration",
       to: "Patient",
       channel: appointment.confirmationMethod || "Phone, SMS, letter, email, or portal",
-      route: "/appointments",
+      route: taskRoutes.appointments,
       actionLabel: "Mark appointment communication recorded",
       action: (_onAdvanceConcern, _onUpdateConcern, onUpdateAppointment) =>
         onUpdateAppointment(appointment.id, {
