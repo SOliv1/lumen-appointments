@@ -1658,6 +1658,21 @@ function App() {
             Patients
           </NavLink>
         )}
+        {canViewClinical && (
+          <NavLink to={activeModeRoutes.concerns} activeClassName="active">
+            Patient Care
+          </NavLink>
+        )}
+        {canViewClinical && (
+          <NavLink to={activeModeRoutes.clinicianQueue} activeClassName="active">
+            Clinician Queue
+          </NavLink>
+        )}
+        {canViewClinical && (
+          <NavLink to={activeModeRoutes.bookingBoard} activeClassName="active">
+            Appointments
+          </NavLink>
+        )}
         {canViewAdmin && (
           <NavLink to={activeModeRoutes.clinicians} activeClassName="active">
             Clinicians
