@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link, NavLink, Redirect, Route, Switch, useHistory, useLocation } from "react-router-dom";
 import "./App.css";
 import "./styles/concern.css";
@@ -15,6 +15,11 @@ import initialPatients from "./mockups/patients.json";
 import { formatPatientStoryDate } from "./dateUtils";
 
 const ROUTES = {
+  LOGIN: "/login",
+  CLINICIAN_DASHBOARD: "/clinician/dashboard",
+  PATIENT_HOME: "/patient/home",
+  ADMIN_PANEL: "/admin/panel",
+  UNAUTHORIZED: "/unauthorized",
   LIVE_BOOKING: "/live-booking",
   PRACTICE_MODE: "/practice-mode",
   PATIENTS: "/patients",
@@ -65,10 +70,43 @@ const DEFAULT_PATIENT_SORT = {
 
 const LOGIN_STORAGE_KEY = "lumenAppointmentsSession";
 const LIVE_DATA_ENDPOINT = "/api/live-booking";
-const DEMO_LOGIN = {
-  email: "demo@lumenappointments.local",
-  password: "lumen-demo",
+const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
+const SESSION_WARNING_MS = 2 * 60 * 1000;
+const ROLE_LABELS = {
+  clinician: "Clinician",
+  patient: "Patient",
+  admin: "Admin",
 };
+const DEMO_USERS = [
+  {
+    userId: "demo-clinician-123",
+    name: "Dr Demo Clinician",
+    email: "clinician@lumenappointments.local",
+    password: "lumen-clinician",
+    passcode: "246810",
+    role: "clinician",
+    landingRoute: ROUTES.CLINICIAN_DASHBOARD,
+  },
+  {
+    userId: "demo-patient-456",
+    name: "Pat Demo",
+    email: "patient@lumenappointments.local",
+    password: "lumen-patient",
+    passcode: "135790",
+    role: "patient",
+    landingRoute: ROUTES.PATIENT_HOME,
+  },
+  {
+    userId: "demo-admin-789",
+    name: "Alex Demo Admin",
+    email: "admin@lumenappointments.local",
+    password: "lumen-admin",
+    passcode: "112233",
+    role: "admin",
+    landingRoute: ROUTES.ADMIN_PANEL,
+  },
+];
+const DEFAULT_DEMO_USER = DEMO_USERS[0];
 
 const APP_SORT_OPTIONS = [
   { value: "nextAppointment", label: "Next Appointment" },
@@ -147,6 +185,33 @@ const getCurrentSeasonBanner = (date = new Date()) => {
 };
 
 const makeId = (prefix) => `${prefix}-${Date.now()}-${Math.random().toString(16).slice(2, 8)}`;
+
+const encodeMockJwt = (payload) => {
+  const header = { alg: "none", typ: "JWT", demoOnly: true };
+  const encodePart = (value) =>
+    window.btoa(JSON.stringify(value)).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
+
+  return `${encodePart(header)}.${encodePart(payload)}.demo-signature`;
+};
+
+const isSessionExpired = (session) => !session?.expiresAt || Date.now() >= new Date(session.expiresAt).getTime();
+
+const getSessionTimeRemainingMs = (session) =>
+  Math.max(0, session?.expiresAt ? new Date(session.expiresAt).getTime() - Date.now() : 0);
+
+const formatCountdown = (milliseconds) => {
+  const totalSeconds = Math.ceil(milliseconds / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+
+  return `${minutes}:${String(seconds).padStart(2, "0")}`;
+};
+
+const getLandingRouteForRole = (role) =>
+  DEMO_USERS.find((user) => user.role === role)?.landingRoute || ROUTES.LIVE_BOOKING;
+
+const canAccessRole = (session, allowedRoles) =>
+  Boolean(session?.role && allowedRoles.includes(session.role) && !isSessionExpired(session));
 
 const TIME_OPTIONS = [
   "08:00",
@@ -645,7 +710,14 @@ function App() {
   const [session, setSession] = useState(() => {
     try {
       const savedSession = window.localStorage.getItem(LOGIN_STORAGE_KEY);
-      return savedSession ? JSON.parse(savedSession) : null;
+      const parsedSession = savedSession ? JSON.parse(savedSession) : null;
+
+      if (isSessionExpired(parsedSession)) {
+        window.localStorage.removeItem(LOGIN_STORAGE_KEY);
+        return null;
+      }
+
+      return parsedSession;
     } catch (error) {
       return null;
     }
@@ -666,6 +738,8 @@ function App() {
   const [appSortBy, setAppSortBy] = useState("nextAppointment");
   const [cheatSheetsOpen, setCheatSheetsOpen] = useState(false);
   const [pendingModeSwitch, setPendingModeSwitch] = useState(null);
+  const [sessionTimeRemainingMs, setSessionTimeRemainingMs] = useState(() => getSessionTimeRemainingMs(session));
+  const [journeyFocusPatientId, setJourneyFocusPatientId] = useState(null);
   const [activityLog, setActivityLog] = useState([
     {
       id: "practice-log-start",
@@ -853,28 +927,49 @@ function App() {
 
   const handleLogin = (credentials) => {
     const normalisedEmail = credentials.email.trim().toLowerCase();
+    const demoUser = DEMO_USERS.find((user) => user.email === normalisedEmail);
 
-    if (normalisedEmail !== DEMO_LOGIN.email || credentials.password !== DEMO_LOGIN.password) {
-      return "Use the demo access details shown on this screen.";
+    if (
+      !demoUser ||
+      credentials.password !== demoUser.password ||
+      credentials.passcode !== demoUser.passcode
+    ) {
+      return "Use one of the demo identities and passcodes shown on this screen.";
     }
 
+    const issuedAt = new Date();
+    const expiresAt = new Date(issuedAt.getTime() + SESSION_TIMEOUT_MS);
+    const mockToken = encodeMockJwt({
+      userId: demoUser.userId,
+      role: demoUser.role,
+      iat: Math.floor(issuedAt.getTime() / 1000),
+      exp: Math.floor(expiresAt.getTime() / 1000),
+    });
     const nextSession = {
       email: normalisedEmail,
-      signedInAt: new Date().toISOString(),
+      name: demoUser.name,
+      role: demoUser.role,
+      userId: demoUser.userId,
+      signedInAt: issuedAt.toISOString(),
+      expiresAt: expiresAt.toISOString(),
+      mockToken,
     };
 
     setSession(nextSession);
 
     try {
+      // Prototype convenience only. Production auth should use an HTTP-only secure cookie.
       window.localStorage.setItem(LOGIN_STORAGE_KEY, JSON.stringify(nextSession));
     } catch (error) {
       // The prototype still works for this browser session when storage is unavailable.
     }
 
+    history.push(demoUser.landingRoute);
+
     return "";
   };
 
-  const handleLogout = () => {
+  const handleLogout = useCallback(() => {
     setSession(null);
 
     try {
@@ -882,7 +977,60 @@ function App() {
     } catch (error) {
       // Nothing else is needed for the local prototype session.
     }
+
+    history.push(ROUTES.LOGIN);
+  }, [history]);
+
+  const extendSession = () => {
+    if (!session) {
+      return;
+    }
+
+    const extendedSession = {
+      ...session,
+      expiresAt: new Date(Date.now() + SESSION_TIMEOUT_MS).toISOString(),
+    };
+
+    setSession(extendedSession);
+    setSessionTimeRemainingMs(getSessionTimeRemainingMs(extendedSession));
+
+    try {
+      window.localStorage.setItem(LOGIN_STORAGE_KEY, JSON.stringify(extendedSession));
+    } catch (error) {
+      // The renewed mock session still works in memory if storage is unavailable.
+    }
   };
+
+  useEffect(() => {
+    if (!session) {
+      return undefined;
+    }
+
+    setSessionTimeRemainingMs(getSessionTimeRemainingMs(session));
+
+    if (isSessionExpired(session)) {
+      handleLogout();
+      return undefined;
+    }
+
+    const timeoutMs = Math.max(0, new Date(session.expiresAt).getTime() - Date.now());
+    const sessionTimer = window.setTimeout(handleLogout, timeoutMs);
+
+    return () => window.clearTimeout(sessionTimer);
+  }, [handleLogout, session]);
+
+  useEffect(() => {
+    if (!session) {
+      setSessionTimeRemainingMs(0);
+      return undefined;
+    }
+
+    const countdownTimer = window.setInterval(() => {
+      setSessionTimeRemainingMs(getSessionTimeRemainingMs(session));
+    }, 1000);
+
+    return () => window.clearInterval(countdownTimer);
+  }, [session]);
 
   const updateConcernJourney = (id, changes) => {
     setConcerns((currentConcerns) =>
@@ -929,11 +1077,89 @@ function App() {
   };
 
   const resetPracticeBoard = () => {
+    setJourneyFocusPatientId(null);
     loadPracticeLevel(practiceLevelId, "reset");
   };
 
   const changePracticeLevel = (levelId) => {
+    setJourneyFocusPatientId(null);
     loadPracticeLevel(levelId, "loaded");
+  };
+
+  const startPracticeJourneyForPatient = (patient, reason = "selected") => {
+    const existingConcern = concerns.find(
+      (concern) => concern.patientId === patient.id && concern.status !== "Closed"
+    );
+
+    setJourneyFocusPatientId(patient.id);
+
+    if (existingConcern) {
+      setConcerns((currentConcerns) =>
+        currentConcerns.map((concern) => ({
+          ...concern,
+          isSpotlightJourney: concern.id === existingConcern.id,
+        }))
+      );
+      recordPracticeEvent(`${patient.name} selected as the active mock patient journey.`);
+      history.push(getModeRoutes("practice").concerns);
+      return;
+    }
+
+    const concernId = makeId("spotlight-concern");
+    const registeredAt = patient.registeredAt || new Date().toISOString();
+    const concern = {
+      id: concernId,
+      patientId: patient.id,
+      patientName: patient.name,
+      description: patient.notes || "New patient appointment request",
+      patientMessage:
+        `The request is recorded for ${patient.name}. Staff can confirm the recorded reason and that the care team will follow the next step.`,
+      confirmedTime: "Not confirmed yet",
+      confirmationMethod: "Not confirmed",
+      trigger: "phone",
+      status: "Awaiting Review",
+      isSpotlightJourney: true,
+      patientContactStatus: "Patient communication not yet recorded",
+      clinicianStep: "Today's care queue",
+      triage: {
+        urgency: "Not triaged",
+        route: "Not assigned",
+        timeframe: "Not set",
+        redFlagCheck: "Not recorded",
+        note: "New mock patient awaiting authorised review.",
+      },
+      communication: {
+        patientInformed: false,
+        by: "",
+        channel: "Phone",
+        at: "",
+        confirmationOutstanding: true,
+      },
+      matchedSlotId: "",
+      appointmentId: "",
+      createdAt: registeredAt,
+    };
+
+    setConcerns((currentConcerns) => [
+      { ...concern, notes: buildInitialConcernNotes(concern) },
+      ...currentConcerns.map((item) => ({ ...item, isSpotlightJourney: false })),
+    ]);
+    recordPracticeEvent(`${patient.name} ${reason} as a mock patient journey. Press Run Next Practice Step to follow the pathway.`);
+    history.push(getModeRoutes("practice").concerns);
+  };
+
+  const createMockPatientJourney = () => {
+    const patient = {
+      id: makeId("spotlight-patient"),
+      name: "New Mock Patient",
+      dob: "1984-04-18",
+      contact: "07700 900555",
+      notes: "New mock patient created from the guided journey.",
+      registeredAt: new Date().toISOString(),
+    };
+
+    setPatients((currentPatients) => [patient, ...currentPatients]);
+    startPracticeJourneyForPatient(patient, "added");
   };
 
   const matchConcernJourneyToSlot = (concern) => {
@@ -1085,7 +1311,13 @@ function App() {
   };
 
   const runNextPracticeStep = () => {
-    const needsInfoConcern = concerns.find((concern) => concern.status === "Needs Information");
+    const findJourneyConcern = (predicate) =>
+      concerns.find((concern) => concern.patientId === journeyFocusPatientId && predicate(concern)) ||
+      concerns.find((concern) => concern.isSpotlightJourney && predicate(concern)) ||
+      concerns.find(predicate);
+    const getJourneyPatientName = (concern) =>
+      patientLookup[concern.patientId]?.name || concern.patientName || concern.patientId;
+    const needsInfoConcern = findJourneyConcern((concern) => concern.status === "Needs Information");
 
     if (needsInfoConcern) {
       updateConcernJourney(needsInfoConcern.id, {
@@ -1093,35 +1325,47 @@ function App() {
         clarificationStatus: "Information recorded during practice",
         patientContactStatus: "Clarification communication recorded",
       });
-      recordPracticeEvent(`${patientLookup[needsInfoConcern.patientId]?.name || needsInfoConcern.patientId} moved from clarification to triage-ready.`);
+      recordPracticeEvent(`${getJourneyPatientName(needsInfoConcern)} moved from clarification to triage-ready.`);
       return;
     }
 
-    const awaitingReviewConcern = concerns.find((concern) => concern.status === "Awaiting Review");
+    const awaitingReviewConcern = findJourneyConcern((concern) => concern.status === "Awaiting Review");
 
     if (awaitingReviewConcern) {
       advanceConcernJourney(awaitingReviewConcern.id, "triage");
-      recordPracticeEvent(`${patientLookup[awaitingReviewConcern.patientId]?.name || awaitingReviewConcern.patientId} reviewed by admin and marked ready for triage.`);
+      recordPracticeEvent(`${getJourneyPatientName(awaitingReviewConcern)} reviewed by admin and marked ready for triage.`);
       return;
     }
 
-    const readyForTriageConcern = concerns.find((concern) => concern.status === "Ready for Triage");
+    const readyForTriageConcern = findJourneyConcern((concern) => concern.status === "Ready for Triage");
 
     if (readyForTriageConcern) {
       advanceConcernJourney(readyForTriageConcern.id, "review");
-      recordPracticeEvent(`${patientLookup[readyForTriageConcern.patientId]?.name || readyForTriageConcern.patientId} triage review completed in practice.`);
+      recordPracticeEvent(`${getJourneyPatientName(readyForTriageConcern)} triage review completed in practice.`);
       return;
     }
 
-    const appointmentRequiredConcern = concerns.find((concern) => concern.status === "Appointment Required");
+    const triagedConcern = findJourneyConcern((concern) => concern.status === "Triaged");
+
+    if (triagedConcern) {
+      advanceConcernJourney(triagedConcern.id, "assign");
+      recordPracticeEvent(`${getJourneyPatientName(triagedConcern)} marked as needing an appointment.`);
+      return;
+    }
+
+    const appointmentRequiredConcern = findJourneyConcern((concern) => concern.status === "Appointment Required");
 
     if (appointmentRequiredConcern) {
       advanceConcernJourney(appointmentRequiredConcern.id, "match");
-      recordPracticeEvent(`${patientLookup[appointmentRequiredConcern.patientId]?.name || appointmentRequiredConcern.patientId} matched to the next available slot.`);
+      recordPracticeEvent(`${getJourneyPatientName(appointmentRequiredConcern)} matched to the next available slot.`);
       return;
     }
 
-    const appointmentNeedingContact = appointments.find((appointment) => appointment.patientCommunicationNeeded);
+    const appointmentNeedingContact =
+      appointments.find(
+        (appointment) => appointment.patientId === journeyFocusPatientId && appointment.patientCommunicationNeeded
+      ) ||
+      appointments.find((appointment) => appointment.patientCommunicationNeeded);
 
     if (appointmentNeedingContact) {
       updateAppointmentMovement(appointmentNeedingContact.id, {
@@ -1140,7 +1384,7 @@ function App() {
       return;
     }
 
-    const bookedConcern = concerns.find(
+    const bookedConcern = findJourneyConcern(
       (concern) =>
         concern.status === "Appointment Booked" &&
         concern.patientContactStatus !== "Patient communication recorded"
@@ -1158,7 +1402,38 @@ function App() {
           confirmationOutstanding: false,
         },
       });
-      recordPracticeEvent(`${patientLookup[bookedConcern.patientId]?.name || bookedConcern.patientId} patient communication recorded.`);
+      recordPracticeEvent(`${getJourneyPatientName(bookedConcern)} patient communication recorded.`);
+      return;
+    }
+
+    const bookedReadyForTreatment = findJourneyConcern(
+      (concern) =>
+        concern.status === "Appointment Booked" &&
+        concern.patientContactStatus === "Patient communication recorded"
+    );
+
+    if (bookedReadyForTreatment) {
+      advanceConcernJourney(bookedReadyForTreatment.id, "treatment");
+      recordPracticeEvent(`${getJourneyPatientName(bookedReadyForTreatment)} moved into treatment.`);
+      return;
+    }
+
+    const treatmentConcern = findJourneyConcern((concern) => concern.status === "Treatment");
+
+    if (treatmentConcern) {
+      advanceConcernJourney(treatmentConcern.id, "follow-up");
+      recordPracticeEvent(`${getJourneyPatientName(treatmentConcern)} moved to follow-up.`);
+      return;
+    }
+
+    const followUpConcern = findJourneyConcern((concern) => concern.status === "Follow-up");
+
+    if (followUpConcern) {
+      advanceConcernJourney(followUpConcern.id, "close");
+      recordPracticeEvent(`${getJourneyPatientName(followUpConcern)} journey closed.`);
+      if (followUpConcern.patientId === journeyFocusPatientId) {
+        setJourneyFocusPatientId(null);
+      }
       return;
     }
 
@@ -1285,6 +1560,14 @@ function App() {
     );
   }
 
+  const sessionRole = session.role;
+  const isPatient = sessionRole === "patient";
+  const canViewAdmin = canAccessRole(session, ["admin"]);
+  const canViewClinical = canAccessRole(session, ["clinician", "admin"]);
+  const canViewOperational = canAccessRole(session, ["clinician", "admin"]);
+  const showSessionWarning =
+    sessionTimeRemainingMs > 0 && sessionTimeRemainingMs <= SESSION_WARNING_MS;
+
   return (
     <div className={`app-shell app-shell-${activeMode}`}>
       <AppHeader
@@ -1294,6 +1577,8 @@ function App() {
         sortBy={appSortBy}
         onSortChange={setAppSortBy}
         userEmail={session.email}
+        userName={session.name}
+        userRole={sessionRole}
         onLogout={handleLogout}
         mode={activeMode}
       />
@@ -1314,33 +1599,48 @@ function App() {
       </section>
 
       <nav className="app-nav" aria-label="Primary navigation">
-        <NavLink
-          to={ROUTES.LIVE_BOOKING}
-          activeClassName="active"
-          className="live-mode-nav-link"
-          onClick={(event) => requestModeSwitch(event, "live")}
-        >
-          <span>LIVE BOOKING <span aria-hidden="true">🔒</span></span>
-          <small>Neutral</small>
-        </NavLink>
-        <NavLink
-          to={ROUTES.PRACTICE_MODE}
-          activeClassName="active"
-          className="practice-mode-nav-link"
-          onClick={(event) => requestModeSwitch(event, "practice")}
-        >
-          <span>PRACTICE MODE <span aria-hidden="true">🔒</span></span>
-          <small>Tinted</small>
-        </NavLink>
-        <NavLink to={activeModeRoutes.patients} activeClassName="active">
-          Patients
-        </NavLink>
-        <NavLink to={activeModeRoutes.clinicians} activeClassName="active">
-          Clinicians
-        </NavLink>
-        <NavLink to={activeModeRoutes.admin} activeClassName="active">
-          Admin
-        </NavLink>
+        {canViewOperational && (
+          <NavLink
+            to={ROUTES.LIVE_BOOKING}
+            activeClassName="active"
+            className="live-mode-nav-link"
+            onClick={(event) => requestModeSwitch(event, "live")}
+          >
+            <span>LIVE BOOKING <span aria-hidden="true">🔒</span></span>
+            <small>Neutral</small>
+          </NavLink>
+        )}
+        {canViewOperational && (
+          <NavLink
+            to={ROUTES.PRACTICE_MODE}
+            activeClassName="active"
+            className="practice-mode-nav-link"
+            onClick={(event) => requestModeSwitch(event, "practice")}
+          >
+            <span>PRACTICE MODE <span aria-hidden="true">🔒</span></span>
+            <small>Tinted</small>
+          </NavLink>
+        )}
+        {isPatient && (
+          <NavLink to={ROUTES.PATIENT_HOME} activeClassName="active">
+            Patient Home
+          </NavLink>
+        )}
+        {canViewClinical && (
+          <NavLink to={activeModeRoutes.patients} activeClassName="active">
+            Patients
+          </NavLink>
+        )}
+        {canViewAdmin && (
+          <NavLink to={activeModeRoutes.clinicians} activeClassName="active">
+            Clinicians
+          </NavLink>
+        )}
+        {canViewAdmin && (
+          <NavLink to={activeModeRoutes.admin} activeClassName="active">
+            Admin
+          </NavLink>
+        )}
         <div className="cheat-sheet-nav">
           <button
             type="button"
@@ -1360,12 +1660,21 @@ function App() {
             </div>
           )}
         </div>
-        <NavLink to={activeModeRoutes.settings} activeClassName="active">
-          Settings
-        </NavLink>
+        {canViewAdmin && (
+          <NavLink to={activeModeRoutes.settings} activeClassName="active">
+            Settings
+          </NavLink>
+        )}
       </nav>
 
       <ModeStatusBanner mode={activeMode} />
+      {showSessionWarning && (
+        <SessionTimeoutNotice
+          remainingMs={sessionTimeRemainingMs}
+          onExtend={extendSession}
+          onLogout={handleLogout}
+        />
+      )}
       {pendingModeSwitch && (
         <ModeSwitchModal
           targetMode={pendingModeSwitch.targetMode}
@@ -1384,218 +1693,283 @@ function App() {
         )}
         <Switch>
           <Route exact path="/">
-            <Redirect to={ROUTES.LIVE_BOOKING} />
+            <Redirect to={getLandingRouteForRole(sessionRole)} />
+          </Route>
+          <Route exact path={ROUTES.LOGIN}>
+            <Redirect to={getLandingRouteForRole(sessionRole)} />
+          </Route>
+          <Route exact path={ROUTES.CLINICIAN_DASHBOARD}>
+            <RoleGate session={session} allowedRoles={["clinician", "admin"]}>
+              <Redirect to={getModeRoutes("live").clinicianQueue} />
+            </RoleGate>
+          </Route>
+          <Route exact path={ROUTES.PATIENT_HOME}>
+            <RoleGate session={session} allowedRoles={["patient"]}>
+              <PatientDemoHome session={session} />
+            </RoleGate>
+          </Route>
+          <Route exact path={ROUTES.ADMIN_PANEL}>
+            <RoleGate session={session} allowedRoles={["admin"]}>
+              <Redirect to={getModeRoutes("live").admin} />
+            </RoleGate>
+          </Route>
+          <Route exact path={ROUTES.UNAUTHORIZED}>
+            <UnauthorizedPage session={session} />
           </Route>
           <Route exact path={ROUTES.LIVE_BOOKING}>
-            <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
-              <LiveBookingDashboard
-                patients={livePatients}
-                clinicians={liveClinicians}
-                appointments={liveAppointmentListItems}
-                concerns={liveConcernListItems}
-                dataStatus={liveDataStatus}
-                routes={getModeRoutes("live")}
-              />
-            </ModeWorkspace>
+            <RoleGate session={session} allowedRoles={["clinician", "admin"]}>
+              <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
+                <LiveBookingDashboard
+                  patients={livePatients}
+                  clinicians={liveClinicians}
+                  appointments={liveAppointmentListItems}
+                  concerns={liveConcernListItems}
+                  dataStatus={liveDataStatus}
+                  routes={getModeRoutes("live")}
+                />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route path={getModeRoutes("live").patients}>
-            <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
-              <PatientsPage patients={livePatients} setPatients={setLivePatients} />
-            </ModeWorkspace>
+            <RoleGate session={session} allowedRoles={["clinician", "admin"]}>
+              <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
+                <PatientsPage patients={livePatients} setPatients={setLivePatients} mode="live" />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route path={getModeRoutes("live").clinicians}>
-            <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
-              <CliniciansPage clinicians={liveClinicians} setClinicians={setLiveClinicians} />
-            </ModeWorkspace>
+            <RoleGate session={session} allowedRoles={["admin"]}>
+              <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
+                <CliniciansPage clinicians={liveClinicians} setClinicians={setLiveClinicians} />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route path={getModeRoutes("live").admin}>
-            <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
-              <AdminDashboard
-                concerns={liveConcernListItems}
-                appointments={liveAppointmentListItems}
-                availability={liveAvailability}
-                patientLookup={livePatientLookup}
-                clinicianLookup={liveClinicianLookup}
-                onAdvanceConcern={() => {}}
-                onUpdateConcern={updateLiveConcern}
-                onUpdateAppointment={updateLiveAppointment}
-                onAddConcernNote={(id, note) => addModeConcernNote("live", id, note)}
-                onAddAppointmentNote={(id, note) => addModeAppointmentNote("live", id, note)}
-                routes={getModeRoutes("live")}
-              />
-            </ModeWorkspace>
+            <RoleGate session={session} allowedRoles={["admin"]}>
+              <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
+                <AdminDashboard
+                  concerns={liveConcernListItems}
+                  appointments={liveAppointmentListItems}
+                  availability={liveAvailability}
+                  patientLookup={livePatientLookup}
+                  clinicianLookup={liveClinicianLookup}
+                  onAdvanceConcern={() => {}}
+                  onUpdateConcern={updateLiveConcern}
+                  onUpdateAppointment={updateLiveAppointment}
+                  onAddConcernNote={(id, note) => addModeConcernNote("live", id, note)}
+                  onAddAppointmentNote={(id, note) => addModeAppointmentNote("live", id, note)}
+                  routes={getModeRoutes("live")}
+                />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route path={getModeRoutes("live").bookingBoard}>
-            <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
-              <AppointmentsPage
-                appointments={liveAppointments}
-                setAppointments={setLiveAppointments}
-                availability={liveAvailability}
-                patients={livePatients}
-                clinicians={liveClinicians}
-                patientLookup={livePatientLookup}
-                clinicianLookup={liveClinicianLookup}
-                sortBy={appSortBy}
-              />
-            </ModeWorkspace>
+            <RoleGate session={session} allowedRoles={["clinician", "admin"]}>
+              <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
+                <AppointmentsPage
+                  appointments={liveAppointments}
+                  setAppointments={setLiveAppointments}
+                  availability={liveAvailability}
+                  patients={livePatients}
+                  clinicians={liveClinicians}
+                  patientLookup={livePatientLookup}
+                  clinicianLookup={liveClinicianLookup}
+                  sortBy={appSortBy}
+                />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route path={getModeRoutes("live").clinicianQueue}>
-            <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
-              <ClinicianQueue
-                concerns={liveConcernListItems}
-                patientLookup={livePatientLookup}
-                onUpdateClinicianJourney={updateLiveConcern}
-                onAddConcernNote={(id, note) => addModeConcernNote("live", id, note)}
-              />
-            </ModeWorkspace>
+            <RoleGate session={session} allowedRoles={["clinician", "admin"]}>
+              <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
+                <ClinicianQueue
+                  concerns={liveConcernListItems}
+                  patientLookup={livePatientLookup}
+                  onUpdateClinicianJourney={updateLiveConcern}
+                  onAddConcernNote={(id, note) => addModeConcernNote("live", id, note)}
+                />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route path={getModeRoutes("live").settings}>
-            <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
-              <AvailabilityPage
-                mode="live"
-                availability={liveAvailability}
-                setAvailability={setLiveAvailability}
-                clinicians={liveClinicians}
-                clinicianLookup={liveClinicianLookup}
-                journeyStartRoute={getModeRoutes("live").newConcern}
-              />
-            </ModeWorkspace>
+            <RoleGate session={session} allowedRoles={["admin"]}>
+              <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
+                <AvailabilityPage
+                  mode="live"
+                  availability={liveAvailability}
+                  setAvailability={setLiveAvailability}
+                  clinicians={liveClinicians}
+                  clinicianLookup={liveClinicianLookup}
+                  journeyStartRoute={getModeRoutes("live").newConcern}
+                />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route path={getModeRoutes("live").newConcern}>
-            <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
-              <NewConcern
-                addConcern={addLiveConcern}
-                patients={livePatients}
-                descriptions={[]}
-                returnTo={getModeRoutes("live").concerns}
-              />
-            </ModeWorkspace>
+            <RoleGate session={session} allowedRoles={["clinician", "admin"]}>
+              <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
+                <NewConcern
+                  addConcern={addLiveConcern}
+                  patients={livePatients}
+                  descriptions={[]}
+                  returnTo={getModeRoutes("live").concerns}
+                />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route path={getModeRoutes("live").concerns}>
-            <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
-              <ConcernList
-                concerns={liveConcernListItems}
-                onAdvanceConcern={() => {}}
-                onUpdateConcern={updateLiveConcern}
-                onAddConcernNote={(id, note) => addModeConcernNote("live", id, note)}
-              />
-            </ModeWorkspace>
+            <RoleGate session={session} allowedRoles={["clinician", "admin"]}>
+              <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
+                <ConcernList
+                  concerns={liveConcernListItems}
+                  onAdvanceConcern={() => {}}
+                  onUpdateConcern={updateLiveConcern}
+                  onAddConcernNote={(id, note) => addModeConcernNote("live", id, note)}
+                />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route exact path={ROUTES.PRACTICE_MODE}>
-            <ModeWorkspace mode="practice">
-              <JourneyStart
-                activityLog={activityLog}
-                practiceLevelId={practiceLevelId}
-                practiceLevels={PRACTICE_LEVELS}
-                seasonLabel={currentSeasonBanner.label}
+            <RoleGate session={session} allowedRoles={["clinician", "admin"]}>
+              <ModeWorkspace mode="practice">
+                <JourneyStart
+                  activityLog={activityLog}
+                  practiceLevelId={practiceLevelId}
+                  practiceLevels={PRACTICE_LEVELS}
+                  seasonLabel={currentSeasonBanner.label}
                 onPracticeLevelChange={changePracticeLevel}
                 onRunPracticeStep={runNextPracticeStep}
                 onResetPracticeBoard={resetPracticeBoard}
+                onCreateMockPatientJourney={createMockPatientJourney}
                 routes={getModeRoutes("practice")}
                 onRequestPracticeExit={(event, targetRoute) =>
                   requestModeSwitch(event, "live", targetRoute)
-                }
-              />
-            </ModeWorkspace>
+                  }
+                />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route path={getModeRoutes("practice").patients}>
-            <ModeWorkspace mode="practice">
-              <PatientsPage patients={patients} setPatients={setPatients} />
-            </ModeWorkspace>
+            <RoleGate session={session} allowedRoles={["clinician", "admin"]}>
+              <ModeWorkspace mode="practice">
+                <PatientsPage
+                  patients={patients}
+                  setPatients={setPatients}
+                  mode="practice"
+                  onStartPatientJourney={startPracticeJourneyForPatient}
+                />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route path={getModeRoutes("practice").clinicians}>
-            <ModeWorkspace mode="practice">
-              <CliniciansPage clinicians={clinicians} setClinicians={setClinicians} />
-            </ModeWorkspace>
+            <RoleGate session={session} allowedRoles={["admin"]}>
+              <ModeWorkspace mode="practice">
+                <CliniciansPage clinicians={clinicians} setClinicians={setClinicians} />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route path={getModeRoutes("practice").admin}>
-            <ModeWorkspace mode="practice">
-              <AdminDashboard
-                concerns={concernListItems}
-                appointments={appointmentListItems}
-                availability={availability}
-                patientLookup={patientLookup}
-                clinicianLookup={clinicianLookup}
-                onAdvanceConcern={advanceConcernJourney}
-                onUpdateConcern={updateConcernJourney}
-                onUpdateAppointment={updateAppointmentMovement}
-                onAddConcernNote={(id, note) => addModeConcernNote("practice", id, note)}
-                onAddAppointmentNote={(id, note) => addModeAppointmentNote("practice", id, note)}
-                activityLog={activityLog}
-                practiceLevelId={practiceLevelId}
-                practiceLevels={PRACTICE_LEVELS}
-                onPracticeLevelChange={changePracticeLevel}
-                onRunPracticeStep={runNextPracticeStep}
-                onResetPracticeBoard={resetPracticeBoard}
-                routes={getModeRoutes("practice")}
-              />
-            </ModeWorkspace>
+            <RoleGate session={session} allowedRoles={["admin"]}>
+              <ModeWorkspace mode="practice">
+                <AdminDashboard
+                  concerns={concernListItems}
+                  appointments={appointmentListItems}
+                  availability={availability}
+                  patientLookup={patientLookup}
+                  clinicianLookup={clinicianLookup}
+                  onAdvanceConcern={advanceConcernJourney}
+                  onUpdateConcern={updateConcernJourney}
+                  onUpdateAppointment={updateAppointmentMovement}
+                  onAddConcernNote={(id, note) => addModeConcernNote("practice", id, note)}
+                  onAddAppointmentNote={(id, note) => addModeAppointmentNote("practice", id, note)}
+                  activityLog={activityLog}
+                  practiceLevelId={practiceLevelId}
+                  practiceLevels={PRACTICE_LEVELS}
+                  onPracticeLevelChange={changePracticeLevel}
+                  onRunPracticeStep={runNextPracticeStep}
+                  onResetPracticeBoard={resetPracticeBoard}
+                  routes={getModeRoutes("practice")}
+                />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route path={getModeRoutes("practice").bookingBoard}>
-            <ModeWorkspace mode="practice">
-              <AppointmentsPage
-                appointments={appointments}
-                setAppointments={setAppointments}
-                availability={availability}
-                patients={patients}
-                clinicians={clinicians}
-                patientLookup={patientLookup}
-                clinicianLookup={clinicianLookup}
-                sortBy={appSortBy}
-              />
-            </ModeWorkspace>
+            <RoleGate session={session} allowedRoles={["clinician", "admin"]}>
+              <ModeWorkspace mode="practice">
+                <AppointmentsPage
+                  appointments={appointments}
+                  setAppointments={setAppointments}
+                  availability={availability}
+                  patients={patients}
+                  clinicians={clinicians}
+                  patientLookup={patientLookup}
+                  clinicianLookup={clinicianLookup}
+                  sortBy={appSortBy}
+                />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route path={getModeRoutes("practice").clinicianQueue}>
-            <ModeWorkspace mode="practice">
-              <ClinicianQueue
-                concerns={concernListItems}
-                patientLookup={patientLookup}
-                onUpdateClinicianJourney={updateConcernJourney}
-                onAddConcernNote={(id, note) => addModeConcernNote("practice", id, note)}
-              />
-            </ModeWorkspace>
+            <RoleGate session={session} allowedRoles={["clinician", "admin"]}>
+              <ModeWorkspace mode="practice">
+                <ClinicianQueue
+                  concerns={concernListItems}
+                  patientLookup={patientLookup}
+                  onUpdateClinicianJourney={updateConcernJourney}
+                  onAddConcernNote={(id, note) => addModeConcernNote("practice", id, note)}
+                />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route path={getModeRoutes("practice").settings}>
-            <ModeWorkspace mode="practice">
-              <AvailabilityPage
-                mode="practice"
-                availability={availability}
-                setAvailability={setAvailability}
-                clinicians={clinicians}
-                clinicianLookup={clinicianLookup}
-                journeyStartRoute={getModeRoutes("practice").newConcern}
-              />
-            </ModeWorkspace>
+            <RoleGate session={session} allowedRoles={["admin"]}>
+              <ModeWorkspace mode="practice">
+                <AvailabilityPage
+                  mode="practice"
+                  availability={availability}
+                  setAvailability={setAvailability}
+                  clinicians={clinicians}
+                  clinicianLookup={clinicianLookup}
+                  journeyStartRoute={getModeRoutes("practice").newConcern}
+                />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route path={getModeRoutes("practice").newConcern}>
-            <ModeWorkspace mode="practice">
-              <NewConcern
+            <RoleGate session={session} allowedRoles={["clinician", "admin"]}>
+              <ModeWorkspace mode="practice">
+                <NewConcern
                 addConcern={(concern) => {
+                  setJourneyFocusPatientId(concern.patientId);
                   setConcerns((currentConcerns) => [
-                    ...currentConcerns,
                     {
                       ...concern,
                       id: concern.id || makeId("practice-concern"),
+                      isSpotlightJourney: true,
                       notes: concern.notes || buildInitialConcernNotes(concern),
                     },
+                    ...currentConcerns.map((item) => ({ ...item, isSpotlightJourney: false })),
                   ]);
                   recordPracticeEvent(`Mock concern recorded for ${concern.patientName || concern.patientId}.`);
                 }}
-                patients={patients}
-                descriptions={[]}
-                returnTo={getModeRoutes("practice").concerns}
-              />
-            </ModeWorkspace>
+                  patients={patients}
+                  descriptions={[]}
+                  returnTo={getModeRoutes("practice").concerns}
+                />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route path={getModeRoutes("practice").concerns}>
-            <ModeWorkspace mode="practice">
-              <ConcernList
-                concerns={concernListItems}
-                onAdvanceConcern={advanceConcernJourney}
-                onUpdateConcern={updateConcernJourney}
-                onAddConcernNote={(id, note) => addModeConcernNote("practice", id, note)}
-              />
-            </ModeWorkspace>
+            <RoleGate session={session} allowedRoles={["clinician", "admin"]}>
+              <ModeWorkspace mode="practice">
+                <ConcernList
+                  concerns={concernListItems}
+                  onAdvanceConcern={advanceConcernJourney}
+                  onUpdateConcern={updateConcernJourney}
+                  onAddConcernNote={(id, note) => addModeConcernNote("practice", id, note)}
+                />
+              </ModeWorkspace>
+            </RoleGate>
           </Route>
           <Route path={ROUTES.PATIENTS}>
             <Redirect to={getModeRoutes("live").patients} />
@@ -1735,6 +2109,32 @@ function ModeStatusBanner({ mode }) {
   );
 }
 
+function NhsSpinner({ label = "Loading", compact = false }) {
+  return (
+    <span className={`nhs-spinner ${compact ? "compact" : ""}`} role="status" aria-live="polite">
+      <span className="nhs-spinner-ring" aria-hidden="true">
+        <span>NHS</span>
+      </span>
+      <span>{label}</span>
+    </span>
+  );
+}
+
+function SessionTimeoutNotice({ remainingMs, onExtend, onLogout }) {
+  return (
+    <section className="session-timeout-notice" aria-label="Session timeout warning">
+      <NhsSpinner label="Session timeout approaching" compact />
+      <strong>{formatCountdown(remainingMs)} remaining</strong>
+      <button type="button" className="action-button session-extend-button" onClick={onExtend}>
+        Extend session
+      </button>
+      <button type="button" className="action-button" onClick={onLogout}>
+        Sign out now
+      </button>
+    </section>
+  );
+}
+
 function ModeSwitchModal({ targetMode, onCancel, onContinue }) {
   const isLeavingPractice = targetMode === "live";
 
@@ -1819,7 +2219,14 @@ function LiveBookingDashboard({ patients, clinicians, appointments, concerns, da
         </div>
       </div>
 
-      {dataStatus !== "connected" && (
+      {dataStatus === "loading" && (
+        <div className="live-data-loading">
+          <NhsSpinner label="Checking live booking connection" />
+          <span>Waiting for {LIVE_DATA_ENDPOINT} to return live records.</span>
+        </div>
+      )}
+
+      {dataStatus === "not-connected" && (
         <div className="live-data-empty-warning">
           <strong>No live patient data connected</strong>
           <span>
@@ -1928,14 +2335,29 @@ function CheatSheetBlock({ title, items }) {
 
 function LoginSplash({ seasonLabel, seasonImage, onLogin }) {
   const [credentials, setCredentials] = useState({
-    email: DEMO_LOGIN.email,
-    password: DEMO_LOGIN.password,
+    email: DEFAULT_DEMO_USER.email,
+    password: DEFAULT_DEMO_USER.password,
+    passcode: DEFAULT_DEMO_USER.passcode,
   });
   const [error, setError] = useState("");
 
   const updateCredentials = (event) => {
     setCredentials({ ...credentials, [event.target.name]: event.target.value });
     setError("");
+  };
+
+  const applyDemoUser = (selectedUser) => {
+    setCredentials({
+      email: selectedUser.email,
+      password: selectedUser.password,
+      passcode: selectedUser.passcode,
+    });
+    setError("");
+  };
+
+  const selectDemoUser = (event) => {
+    const selectedUser = DEMO_USERS.find((user) => user.email === event.target.value) || DEFAULT_DEMO_USER;
+    applyDemoUser(selectedUser);
   };
 
   const submitLogin = (event) => {
@@ -1962,13 +2384,53 @@ function LoginSplash({ seasonLabel, seasonImage, onLogin }) {
             <span>Appointments</span>
           </div>
         </div>
-        <p className="eyebrow">{seasonLabel} practice access</p>
+        <p className="eyebrow">{seasonLabel} full-site access at /login</p>
         <h1>Sign in to the appointment planner</h1>
         <p>
-          Use the demo access to practise one appointment, then build up through
-          the training levels when the flow feels familiar.
+          Pick a mock identity to demonstrate one login, role-based routing,
+          route protection and a timed session.
         </p>
+        <div className="login-demo-cards" aria-label="Mock login shortcuts">
+          {DEMO_USERS.map((user) => (
+            <article
+              className={`login-demo-card ${credentials.email === user.email ? "active" : ""}`}
+              key={user.userId}
+            >
+              <div>
+                <strong>{ROLE_LABELS[user.role]}</strong>
+                <span>{user.name}</span>
+              </div>
+              <dl>
+                <div>
+                  <dt>Email</dt>
+                  <dd>{user.email}</dd>
+                </div>
+                <div>
+                  <dt>Password</dt>
+                  <dd>{user.password}</dd>
+                </div>
+                <div>
+                  <dt>Passcode</dt>
+                  <dd>{user.passcode}</dd>
+                </div>
+              </dl>
+              <button type="button" className="action-button" onClick={() => applyDemoUser(user)}>
+                Use this login
+              </button>
+            </article>
+          ))}
+        </div>
         <form className="login-form" onSubmit={submitLogin}>
+          <label>
+            Demo role
+            <select value={credentials.email} onChange={selectDemoUser}>
+              {DEMO_USERS.map((user) => (
+                <option key={user.userId} value={user.email}>
+                  {ROLE_LABELS[user.role]} - {user.name}
+                </option>
+              ))}
+            </select>
+          </label>
           <label>
             Email
             <input
@@ -1991,22 +2453,91 @@ function LoginSplash({ seasonLabel, seasonImage, onLogin }) {
               required
             />
           </label>
+          <label>
+            Security passcode
+            <input
+              name="passcode"
+              type="text"
+              inputMode="numeric"
+              value={credentials.passcode}
+              onChange={updateCredentials}
+              autoComplete="one-time-code"
+              required
+            />
+          </label>
           {error && <p className="login-error">{error}</p>}
           <button type="submit" className="btn btn-appointment">
             Sign in
           </button>
         </form>
         <div className="login-demo-note">
-          <strong>Demo access</strong>
-          <span>{DEMO_LOGIN.email}</span>
-          <span>{DEMO_LOGIN.password}</span>
+          <strong>Where to log in</strong>
+          <span>Open /login, or sign out from the header to return to this splash login.</span>
+          <small>Prototype only: real deployments need server sessions, token validation and HTTP-only secure cookies.</small>
         </div>
       </section>
     </main>
   );
 }
 
-function AppHeader({ registeredAt, seasonLabel, seasonImage, sortBy, onSortChange, userEmail, onLogout, mode }) {
+function RoleGate({ session, allowedRoles, children }) {
+  if (!session || isSessionExpired(session)) {
+    return <Redirect to={ROUTES.LOGIN} />;
+  }
+
+  if (!allowedRoles.includes(session.role)) {
+    return <Redirect to={ROUTES.UNAUTHORIZED} />;
+  }
+
+  return children;
+}
+
+function PatientDemoHome({ session }) {
+  return (
+    <section className="patient-demo-home">
+      <div>
+        <p className="eyebrow">Patient portal demo</p>
+        <h1>Welcome, {session.name}</h1>
+        <p>
+          This mock patient role has a separate home area and cannot open clinician
+          queues, booking tools or administration screens.
+        </p>
+      </div>
+      <div className="patient-demo-grid">
+        <article>
+          <strong>Next appointment</strong>
+          <span>Demo appointment details would appear here after patient-facing data is connected.</span>
+        </article>
+        <article>
+          <strong>Messages</strong>
+          <span>Patient-safe confirmation updates and instructions can be surfaced here.</span>
+        </article>
+        <article>
+          <strong>Access level</strong>
+          <span>{ROLE_LABELS[session.role]} role with protected staff routes blocked.</span>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function UnauthorizedPage({ session }) {
+  return (
+    <section className="unauthorized-panel">
+      <p className="eyebrow">Access restricted</p>
+      <h1>This role cannot view that area</h1>
+      <p>
+        Signed in as {ROLE_LABELS[session.role]}: {session.email}. Choose an
+        appropriate demo identity from the splash screen to test another role.
+      </p>
+      <Link to={getLandingRouteForRole(session.role)} className="btn btn-appointment">
+        Return to my area
+      </Link>
+    </section>
+  );
+}
+
+function AppHeader({ registeredAt, seasonLabel, seasonImage, sortBy, onSortChange, userEmail, userName, userRole, onLogout, mode }) {
   const activeSortLabel = APP_SORT_OPTIONS.find((option) => option.value === sortBy)?.label || "Next Appointment";
   const isPractice = mode === "practice";
 
@@ -2029,6 +2560,10 @@ function AppHeader({ registeredAt, seasonLabel, seasonImage, sortBy, onSortChang
       </div>
 
       <div className="app-header-actions">
+        <span className="header-user-badge">
+          <strong>{ROLE_LABELS[userRole] || "Demo"}</strong>
+          <span>{userName || userEmail}</span>
+        </span>
         <span className={`header-mode-badge header-mode-badge-${mode}`}>
           {isPractice ? "Practice Mode - mock data" : "Live Booking - real data"}
         </span>
@@ -2077,7 +2612,8 @@ function AppHeader({ registeredAt, seasonLabel, seasonImage, sortBy, onSortChang
   );
 }
 
-function PatientsPage({ patients, setPatients }) {
+function PatientsPage({ patients, setPatients, mode = "live", onStartPatientJourney }) {
+  const isPractice = mode === "practice";
   const [form, setForm] = useState({ name: "", dob: "", contact: "", notes: "" });
   const [editingId, setEditingId] = useState(null);
   const [patientSort, setPatientSort] = useState(() => {
@@ -2195,7 +2731,9 @@ function PatientsPage({ patients, setPatients }) {
         )
       );
     } else {
-      setPatients([...patients, { ...form, id: makeId("patient"), registeredAt: getTodayIsoDate() }]);
+      const newPatient = { ...form, id: makeId("patient"), registeredAt: new Date().toISOString() };
+      setPatients([...patients, newPatient]);
+      onStartPatientJourney?.(newPatient, "added");
     }
     resetPatientForm();
   };
@@ -2220,8 +2758,12 @@ function PatientsPage({ patients, setPatients }) {
   return (
     <section className="page-grid">
       <Panel
-        title={editingId ? "Update Patient" : "Register Patient"}
-        subtitle="Capture the minimum details needed for scheduling."
+        title={editingId ? "Update Mock Patient" : isPractice ? "Register Mock Patient Journey" : "Register Patient"}
+        subtitle={
+          isPractice
+            ? "Add a mock patient here to start their practice care journey. Then use Run Next Practice Step to follow them through the pathway."
+            : "Capture the minimum details needed for scheduling."
+        }
       >
         <form onSubmit={savePatient} className="form-grid">
           <input name="name" value={form.name} onChange={updateForm} placeholder="Full name" required />
@@ -2230,7 +2772,7 @@ function PatientsPage({ patients, setPatients }) {
           <textarea name="notes" value={form.notes} onChange={updateForm} placeholder="Care notes" rows="4" />
           <div className="form-actions">
             <button type="submit" className="btn btn-patient">
-              {editingId ? "Save Patient" : "Add Patient"}
+              {editingId ? "Save Patient" : isPractice ? "Add Patient & Start Journey" : "Add Patient"}
             </button>
             {editingId && (
               <button type="button" className="btn btn-quiet" onClick={resetPatientForm}>
@@ -2289,6 +2831,11 @@ function PatientsPage({ patients, setPatients }) {
                 <button type="button" className="action-button" onClick={() => updatePatient(patient)}>
                   Update
                 </button>
+                {onStartPatientJourney && (
+                  <button type="button" className="action-button" onClick={() => onStartPatientJourney(patient, "selected")}>
+                    Start mock journey
+                  </button>
+                )}
                 <button type="button" className="action-button danger" onClick={() => deletePatient(patient.id)}>
                   Delete
                 </button>

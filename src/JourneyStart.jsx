@@ -9,6 +9,7 @@ function JourneyStart({
   onPracticeLevelChange,
   onRunPracticeStep,
   onResetPracticeBoard,
+  onCreateMockPatientJourney,
 }) {
   return (
     <section className="journey-start">
@@ -23,6 +24,9 @@ function JourneyStart({
           <strong className="practice-mock-warning">This is mock data - do not use for real bookings.</strong>
         </div>
         <div className="practice-mode-hero-actions">
+          <button type="button" className="btn btn-concern" onClick={onCreateMockPatientJourney}>
+            Create New Mock Patient Journey
+          </button>
           <button type="button" className="btn btn-appointment" onClick={onRunPracticeStep}>
             Run Next Practice Step
           </button>
@@ -54,6 +58,7 @@ function JourneyStart({
         onPracticeLevelChange={onPracticeLevelChange}
         onRunPracticeStep={onRunPracticeStep}
         onResetPracticeBoard={onResetPracticeBoard}
+        onCreateMockPatientJourney={onCreateMockPatientJourney}
       />
 
       <GuidedWalkthrough />
@@ -160,6 +165,7 @@ function PracticeControls({
   onPracticeLevelChange,
   onRunPracticeStep,
   onResetPracticeBoard,
+  onCreateMockPatientJourney,
 }) {
   const activeLevel = practiceLevels.find((level) => level.id === practiceLevelId) || practiceLevels[0];
 
@@ -173,6 +179,14 @@ function PracticeControls({
           3, then 6, then the full board. Each level resets the mock data so you
           can practise without carrying confusion forward.
         </p>
+        <div className="practice-flow-note">
+          <strong>What Run Next Practice Step does</strong>
+          <span>
+            If you have just added or selected a mock patient, it moves that patient
+            through the pathway first. If not, it advances the existing mock patient
+            journeys already on the board.
+          </span>
+        </div>
         {activeLevel && <small className="practice-level-summary">{activeLevel.summary}</small>}
       </div>
       <div className="practice-level-panel">
@@ -196,6 +210,9 @@ function PracticeControls({
         </ol>
       </div>
       <div className="practice-actions">
+        <button type="button" className="btn btn-concern" onClick={onCreateMockPatientJourney}>
+          Create New Mock Patient
+        </button>
         <button type="button" className="btn btn-appointment" onClick={onRunPracticeStep}>
           Run Next Practice Step
         </button>

@@ -19,7 +19,10 @@ const formatUkDisplayDate = (value) => {
 
 function ConcernList({ concerns, onAdvanceConcern, onUpdateConcern, onAddConcernNote }) {
   const todayLabel = formatUkDisplayDate();
-  const activeConcern = concerns.find((concern) => concern.status !== "Closed") || concerns[0];
+  const activeConcern =
+    concerns.find((concern) => concern.isSpotlightJourney && concern.status !== "Closed") ||
+    concerns.find((concern) => concern.status !== "Closed") ||
+    concerns[0];
 
   return (
     <section className="concern-list">

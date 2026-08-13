@@ -19,6 +19,30 @@ focus, and ease of use.
 Lumen is API‑ready and backend‑agnostic. Organisations can connect their own data sources, authentication systems, and booking logic through their internal IT teams. No backend wiring is required from the designer. The product arrives ready for integration, allowing technical staff to plug in their infrastructure when appropriate.
 Lumen delivers the interface.
 
-### Your IT department provides the data
+## Your IT department provides the data
 
 Together, they form a complete appointment solution.
+
+### Mock Logon details
+
+We have provided mock login details for your convenience and for demo purposes.
+
+#### Clinician
+
+Email: <clinician@lumenappointments.local>
+Password: lumen-clinician
+Passcode: 246810
+
+#### Patient
+
+Email: <patient@lumenappointments.local>
+Password: lumen-patient
+Passcode: 135790
+
+#### Admin
+
+Email: <admin@lumenappointments.local>
+Password: lumen-admin
+Passcode: 112233
+
+

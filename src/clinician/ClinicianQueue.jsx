@@ -10,6 +10,7 @@ import { formatPatientStoryDate } from "../dateUtils";
 
 function ClinicianQueue({ concerns, patientLookup, onUpdateClinicianJourney, onAddConcernNote }) {
   const activeConcern =
+    concerns.find((concern) => concern.isSpotlightJourney && concern.status !== "Closed") ||
     concerns.find((concern) => (concern.clinicianContact?.queryStatus || "").includes("requested")) ||
     concerns.find((concern) => concern.status !== "Closed") ||
     concerns[0];
