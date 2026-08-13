@@ -943,6 +943,29 @@ textarea {
   padding: 28px;
 }
 
+.mode-spinner-backdrop {
+  z-index: 62;
+}
+
+.mode-switch-spinner {
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+  width: min(420px, 100%);
+  padding: 28px;
+  border: 1px solid #cce2f3;
+  border-radius: 8px;
+  background: #ffffff;
+  box-shadow: 0 28px 70px rgba(46, 46, 46, 0.22);
+  text-align: center;
+}
+
+.mode-switch-spinner p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
 .mode-modal-kicker {
   display: inline-flex;
   margin: 0 0 14px;

@@ -759,6 +759,7 @@ function App() {
   const [appSortBy, setAppSortBy] = useState("nextAppointment");
   const [cheatSheetsOpen, setCheatSheetsOpen] = useState(false);
   const [pendingModeSwitch, setPendingModeSwitch] = useState(null);
+  const [modeSwitchLoading, setModeSwitchLoading] = useState(null);
   const [sessionTimeRemainingMs, setSessionTimeRemainingMs] = useState(() => getSessionTimeRemainingMs(session));
   const [journeyFocusPatientId, setJourneyFocusPatientId] = useState(null);
   const [activityLog, setActivityLog] = useState([
@@ -887,6 +888,7 @@ function App() {
 
   const stayInCurrentMode = () => {
     setPendingModeSwitch(null);
+    setModeSwitchLoading(null);
   };
 
   const continueModeSwitch = () => {
@@ -894,9 +896,14 @@ function App() {
       return;
     }
 
-    const nextRoute = pendingModeSwitch.targetRoute;
+    const switchRequest = pendingModeSwitch;
     setPendingModeSwitch(null);
-    history.push(nextRoute);
+    setModeSwitchLoading(switchRequest);
+
+    window.setTimeout(() => {
+      setModeSwitchLoading(null);
+      history.push(switchRequest.targetRoute);
+    }, 950);
   };
 
   useEffect(() => {
@@ -1724,6 +1731,9 @@ function App() {
           onContinue={continueModeSwitch}
         />
       )}
+      {modeSwitchLoading && (
+        <ModeSwitchSpinner targetMode={modeSwitchLoading.targetMode} />
+      )}
 
       <main className="workspace">
         {activeRoleCheatSheet && (
@@ -2174,6 +2184,25 @@ function SessionTimeoutNotice({ remainingMs, onExtend, onLogout }) {
         Sign out now
       </button>
     </section>
+  );
+}
+
+function ModeSwitchSpinner({ targetMode }) {
+  const isLive = targetMode === "live";
+
+  return (
+    <div className="mode-modal-backdrop mode-spinner-backdrop" role="presentation">
+      <section className="mode-switch-spinner" role="status" aria-live="polite">
+        <NhsSpinner
+          label={isLive ? "Switching to Live Booking" : "Switching to Practice Mode"}
+        />
+        <p>
+          {isLive
+            ? "Opening the real-data workspace."
+            : "Opening the mock training workspace."}
+        </p>
+      </section>
+    </div>
   );
 }
 
