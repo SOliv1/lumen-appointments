@@ -388,6 +388,41 @@ textarea {
   font-size: 0.76rem;
 }
 
+.demo-role-switcher {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid #d6dee7;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.92);
+  color: #0e1b2f;
+  box-shadow: 0 6px 14px rgba(47, 68, 85, 0.06);
+}
+
+.demo-role-switcher span {
+  font-size: 0.74rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.demo-role-switcher select {
+  width: auto;
+  min-height: 0;
+  padding: 0 20px 0 0;
+  border: 0;
+  background: transparent;
+  color: #003087;
+  font-weight: 900;
+  outline: none;
+}
+
+.demo-role-switcher:focus-within {
+  outline: 3px solid #183a5a;
+  outline-offset: 3px;
+}
+
 .header-mode-badge,
 .nav-mode-badge,
 .footer-mode-badge {

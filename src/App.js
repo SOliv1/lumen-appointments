@@ -213,6 +213,27 @@ const getLandingRouteForRole = (role) =>
 const canAccessRole = (session, allowedRoles) =>
   Boolean(session?.role && allowedRoles.includes(session.role) && !isSessionExpired(session));
 
+const buildDemoSession = (demoUser) => {
+  const issuedAt = new Date();
+  const expiresAt = new Date(issuedAt.getTime() + SESSION_TIMEOUT_MS);
+  const mockToken = encodeMockJwt({
+    userId: demoUser.userId,
+    role: demoUser.role,
+    iat: Math.floor(issuedAt.getTime() / 1000),
+    exp: Math.floor(expiresAt.getTime() / 1000),
+  });
+
+  return {
+    email: demoUser.email,
+    name: demoUser.name,
+    role: demoUser.role,
+    userId: demoUser.userId,
+    signedInAt: issuedAt.toISOString(),
+    expiresAt: expiresAt.toISOString(),
+    mockToken,
+  };
+};
+
 const TIME_OPTIONS = [
   "08:00",
   "08:30",
@@ -937,23 +958,7 @@ function App() {
       return "Use one of the demo identities and passcodes shown on this screen.";
     }
 
-    const issuedAt = new Date();
-    const expiresAt = new Date(issuedAt.getTime() + SESSION_TIMEOUT_MS);
-    const mockToken = encodeMockJwt({
-      userId: demoUser.userId,
-      role: demoUser.role,
-      iat: Math.floor(issuedAt.getTime() / 1000),
-      exp: Math.floor(expiresAt.getTime() / 1000),
-    });
-    const nextSession = {
-      email: normalisedEmail,
-      name: demoUser.name,
-      role: demoUser.role,
-      userId: demoUser.userId,
-      signedInAt: issuedAt.toISOString(),
-      expiresAt: expiresAt.toISOString(),
-      mockToken,
-    };
+    const nextSession = buildDemoSession(demoUser);
 
     setSession(nextSession);
 
@@ -967,6 +972,26 @@ function App() {
     history.push(demoUser.landingRoute);
 
     return "";
+  };
+
+  const switchDemoRole = (role) => {
+    const demoUser = DEMO_USERS.find((user) => user.role === role);
+
+    if (!demoUser) {
+      return;
+    }
+
+    const nextSession = buildDemoSession(demoUser);
+    setSession(nextSession);
+    setSessionTimeRemainingMs(getSessionTimeRemainingMs(nextSession));
+
+    try {
+      window.localStorage.setItem(LOGIN_STORAGE_KEY, JSON.stringify(nextSession));
+    } catch (error) {
+      // Role switching still works in memory if storage is unavailable.
+    }
+
+    history.push(demoUser.landingRoute);
   };
 
   const handleLogout = useCallback(() => {
@@ -1579,6 +1604,8 @@ function App() {
         userEmail={session.email}
         userName={session.name}
         userRole={sessionRole}
+        demoUsers={DEMO_USERS}
+        onSwitchDemoRole={switchDemoRole}
         onLogout={handleLogout}
         mode={activeMode}
       />
@@ -2537,7 +2564,20 @@ function UnauthorizedPage({ session }) {
   );
 }
 
-function AppHeader({ registeredAt, seasonLabel, seasonImage, sortBy, onSortChange, userEmail, userName, userRole, onLogout, mode }) {
+function AppHeader({
+  registeredAt,
+  seasonLabel,
+  seasonImage,
+  sortBy,
+  onSortChange,
+  userEmail,
+  userName,
+  userRole,
+  demoUsers = [],
+  onSwitchDemoRole,
+  onLogout,
+  mode,
+}) {
   const activeSortLabel = APP_SORT_OPTIONS.find((option) => option.value === sortBy)?.label || "Next Appointment";
   const isPractice = mode === "practice";
 
@@ -2564,6 +2604,20 @@ function AppHeader({ registeredAt, seasonLabel, seasonImage, sortBy, onSortChang
           <strong>{ROLE_LABELS[userRole] || "Demo"}</strong>
           <span>{userName || userEmail}</span>
         </span>
+        <label className="demo-role-switcher">
+          <span>Demo role</span>
+          <select
+            value={userRole}
+            onChange={(event) => onSwitchDemoRole?.(event.target.value)}
+            aria-label="Switch demo role"
+          >
+            {demoUsers.map((user) => (
+              <option value={user.role} key={user.userId}>
+                {ROLE_LABELS[user.role]}
+              </option>
+            ))}
+          </select>
+        </label>
         <span className={`header-mode-badge header-mode-badge-${mode}`}>
           {isPractice ? "Practice Mode - mock data" : "Live Booking - real data"}
         </span>
