@@ -299,11 +299,9 @@ textarea {
 .login-demo-card dd {
   margin: 2px 0 0;
   color: #0e1b2f;
-  font-size: clamp(0.68rem, 0.62rem + 0.2vw, 0.76rem);
+  font-size: 0.78rem;
   font-weight: 800;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 .login-form label {
