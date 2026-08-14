@@ -2668,6 +2668,13 @@ function ClinicianDemoHome({ session, routes }) {
           <span>Clinician role with admin-only and patient-only routes disabled.</span>
         </article>
       </div>
+      <main className="page-main role-demo-explainer">
+        <h3>Today's Care Queue</h3>
+        <p>Real patient queues will appear here once connected.</p>
+
+        <h3>Structured Notes</h3>
+        <p>Clinician notes and handoff details will surface here.</p>
+      </main>
       <div className="role-demo-actions">
         <Link to={routes.clinicianQueue} className="btn btn-appointment">
           Open Clinician Queue

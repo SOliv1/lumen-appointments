@@ -723,6 +723,31 @@ textarea {
   white-space: nowrap;
 }
 
+.role-demo-explainer {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 10px 24px rgba(83, 64, 57, 0.06);
+}
+
+.role-demo-explainer h3 {
+  margin: 8px 0 0;
+  color: #0e1b2f;
+  font-size: 1rem;
+}
+
+.role-demo-explainer h3:first-child {
+  margin-top: 0;
+}
+
+.role-demo-explainer p {
+  margin: 0;
+  max-width: none;
+}
+
 .patient-demo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

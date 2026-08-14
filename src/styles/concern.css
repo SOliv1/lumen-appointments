@@ -723,6 +723,32 @@
     color: var(--plum);
 }
 
+.clinician-queue-explainer {
+    display: grid;
+    gap: 8px;
+    padding: 16px 18px;
+    border: 1px solid #b7d3d8;
+    border-radius: 8px;
+    background: #f5fbfb;
+    box-shadow: 0 10px 24px rgba(78, 147, 160, 0.08);
+}
+
+.clinician-queue-explainer h3 {
+    margin: 8px 0 0;
+    color: var(--ink);
+    font-size: 1rem;
+}
+
+.clinician-queue-explainer h3:first-child {
+    margin-top: 0;
+}
+
+.clinician-queue-explainer p {
+    margin: 0;
+    color: var(--muted);
+    line-height: 1.45;
+}
+
 .queue-list {
     display: grid;
     gap: 18px;

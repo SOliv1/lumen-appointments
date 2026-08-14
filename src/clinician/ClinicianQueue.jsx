@@ -26,6 +26,14 @@ function ClinicianQueue({ concerns, patientLookup, onUpdateClinicianJourney, onA
         <h2>Today's Care Queue</h2>
       </div>
 
+      <main className="page-main clinician-queue-explainer">
+        <h3>Today's Care Queue</h3>
+        <p>Real patient queues will appear here once connected.</p>
+
+        <h3>Structured Notes</h3>
+        <p>Clinician notes and handoff details will surface here.</p>
+      </main>
+
       {activeConcern && (
         <JourneyPositionBanner
           pathway="Clinician"
