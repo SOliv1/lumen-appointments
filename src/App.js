@@ -2513,22 +2513,8 @@ function LoginSplash({ seasonLabel, seasonImage, onLogin }) {
               <span className="login-demo-card-status">{ROLE_TILE_COPY[user.role].detail}</span>
               <h2>{ROLE_TILE_COPY[user.role].title}</h2>
               <p>{ROLE_TILE_COPY[user.role].description}</p>
-              <dl>
-                <div>
-                  <dt>Email</dt>
-                  <dd>{user.email}</dd>
-                </div>
-                <div>
-                  <dt>Password</dt>
-                  <dd>{user.password}</dd>
-                </div>
-                <div>
-                  <dt>Passcode</dt>
-                  <dd>{user.passcode}</dd>
-                </div>
-              </dl>
               <button type="button" className="action-button" onClick={() => quickLogin(user)}>
-                Enter as {ROLE_LABELS[user.role]}
+                Enter
               </button>
             </article>
           ))}

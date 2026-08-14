@@ -241,10 +241,13 @@ textarea {
 
 .login-demo-card {
   display: grid;
+  grid-template-rows: auto auto 1fr auto;
   gap: 10px;
   align-content: start;
-  min-height: 284px;
+  min-width: 0;
+  min-height: 248px;
   padding: 16px;
+  overflow: hidden;
   border: 1px solid rgba(211, 222, 216, 0.95);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.76);
@@ -260,6 +263,7 @@ textarea {
 
 .login-demo-card h2 {
   margin: 0;
+  min-width: 0;
   color: #1b2f2a;
   font-size: 1.1rem;
   line-height: 1.2;
@@ -267,6 +271,7 @@ textarea {
 
 .login-demo-card p {
   margin: 0;
+  min-width: 0;
   color: #586a64;
   font-size: 0.88rem;
   line-height: 1.55;
@@ -274,6 +279,7 @@ textarea {
 
 .login-demo-card-status {
   justify-self: start;
+  max-width: 100%;
   padding: 5px 8px;
   border-radius: 999px;
   background: #eef5ef;
@@ -281,10 +287,20 @@ textarea {
   font-size: 0.68rem;
   font-weight: 900;
   text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.login-demo-card .action-button {
+  align-self: end;
+  justify-self: stretch;
+  width: 100%;
+  min-height: 44px;
+  box-sizing: border-box;
+  text-align: center;
 }
 
 .login-demo-card dl {
-  display: grid;
+  display: none;
   gap: 8px;
   margin: auto 0 0;
 }
