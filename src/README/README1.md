@@ -50,7 +50,21 @@ software that is **not** a medical device, but shares structural patterns with r
 
 ---
 
-## 3. Roles and pages
+## 3. Seasonal design
+
+The system uses a **seasonal background tint** that changes gently throughout the year:
+
+- **Spring** - soft greens and warm neutrals
+- **Summer** - brighter, airy tones
+- **Autumn** - muted golds and deeper warmth
+- **Winter** - cool blues and calm greys
+
+This seasonal shift is subtle and atmospheric.
+It supports emotional clarity, reduces visual fatigue, and gives each role a sense of calm continuity.
+
+---
+
+## 4. Roles and pages
 
 The system has three main roles, each with its own page and access level.
 
@@ -105,7 +119,7 @@ This prevents confusion and makes the emptiness intentional, not accidental.
 
 ---
 
-## 4. Practice mode and demo behaviour
+## 5. Practice mode and demo behaviour
 
 The `/practice-mode` and demo routes are intentionally limited:
 
@@ -119,7 +133,7 @@ This makes the prototype safe to explore and suitable as a teaching example.
 
 ---
 
-## 5. How this can be used by students
+## 6. How this can be used by students
 
 Although this project is not a medical device, it can help students:
 
@@ -134,7 +148,7 @@ It is a gentle, approachable way to see how digital health tools are structured.
 
 ---
 
-## 6. Technical notes (high level)
+## 7. Technical notes (high level)
 
 - Frontend: React
 - Layout: mobile‑first, calm gradients, neutral ink
@@ -146,7 +160,7 @@ This is intentionally simple and prototype‑focused.
 
 ---
 
-## 7. What this project taught me
+## 8. What this project taught me
 
 Building this system helped me understand:
 

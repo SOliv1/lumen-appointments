@@ -2488,7 +2488,10 @@ function LoginSplash({ seasonLabel, seasonImage, onLogin }) {
               <span>Appointments</span>
             </div>
           </div>
-          <p className="eyebrow">{seasonLabel} clinical appointment system</p>
+          <div className="login-season-row">
+            <p className="eyebrow">Seasonal clinical appointment system</p>
+            <span>{seasonLabel}</span>
+          </div>
           <h1>Choose a calm, role-aware path into care coordination.</h1>
           <p>
             A soft prototype workspace for clinical queues, patient reassurance,

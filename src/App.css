@@ -144,6 +144,24 @@ textarea {
   color: #7b5360;
 }
 
+.login-season-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.login-season-row span {
+  padding: 5px 8px;
+  border: 1px solid rgba(95, 126, 113, 0.22);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.58);
+  color: #52745f;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
 .login-panel h1 {
   margin: 0;
   color: #0e1b2f;
