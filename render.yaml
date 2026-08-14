@@ -1,7 +1,7 @@
 services:
   - type: web
     runtime: static
-    name: serene-care-sync
+    name: lumen-appointments
     buildCommand: npm ci && npm run build
     staticPublishPath: build
     routes:

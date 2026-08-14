@@ -77,6 +77,26 @@ const ROLE_LABELS = {
   patient: "Patient",
   admin: "Admin",
 };
+const ROLE_TILE_COPY = {
+  clinician: {
+    title: "Clinician",
+    description:
+      "Access the clinical queue, handoff pathway, and structured notes that support safe, timely care.",
+    detail: "Active demo pathway",
+  },
+  patient: {
+    title: "Patient portal",
+    description:
+      "View appointment status, reassurance messaging, and your communication journey with the clinic.",
+    detail: "Prototype view only",
+  },
+  admin: {
+    title: "Admin portal",
+    description:
+      "Oversee tasks, communications, and appointment movements across the service to keep the system flowing.",
+    detail: "Prototype view only",
+  },
+};
 const DEMO_USERS = [
   {
     userId: "demo-clinician-123",
@@ -1752,7 +1772,7 @@ function App() {
           </Route>
           <Route exact path={ROUTES.CLINICIAN_DASHBOARD}>
             <RoleGate session={session} allowedRoles={["clinician", "admin"]}>
-              <Redirect to={getModeRoutes("live").clinicianQueue} />
+              <ClinicianDemoHome session={session} routes={getModeRoutes("live")} />
             </RoleGate>
           </Route>
           <Route exact path={ROUTES.PATIENT_HOME}>
@@ -1762,7 +1782,7 @@ function App() {
           </Route>
           <Route exact path={ROUTES.ADMIN_PANEL}>
             <RoleGate session={session} allowedRoles={["admin"]}>
-              <Redirect to={getModeRoutes("live").admin} />
+              <AdminDemoHome session={session} routes={getModeRoutes("live")} />
             </RoleGate>
           </Route>
           <Route exact path={ROUTES.UNAUTHORIZED}>
@@ -2431,6 +2451,18 @@ function LoginSplash({ seasonLabel, seasonImage, onLogin }) {
     applyDemoUser(selectedUser);
   };
 
+  const quickLogin = (selectedUser) => {
+    const selectedCredentials = {
+      email: selectedUser.email,
+      password: selectedUser.password,
+      passcode: selectedUser.passcode,
+    };
+
+    setCredentials(selectedCredentials);
+    const loginError = onLogin(selectedCredentials);
+    setError(loginError);
+  };
+
   const submitLogin = (event) => {
     event.preventDefault();
     const loginError = onLogin(credentials);
@@ -2445,32 +2477,39 @@ function LoginSplash({ seasonLabel, seasonImage, onLogin }) {
         className="login-splash-image"
       />
       <div className="login-splash-overlay" />
-      <section className="login-panel" aria-label="Lumen Appointments login">
-        <div className="login-brand">
-          <div className="lumen-mark" aria-hidden="true">
-            <span />
+      <section className="login-panel" aria-label="Lumen Appointments sign in">
+        <div className="login-intro">
+          <div className="login-brand">
+            <div className="lumen-mark" aria-hidden="true">
+              <span />
+            </div>
+            <div className="lumen-wordmark">
+              <strong>Lumen</strong>
+              <span>Appointments</span>
+            </div>
           </div>
-          <div className="lumen-wordmark">
-            <strong>Lumen</strong>
-            <span>Appointments</span>
+          <p className="eyebrow">{seasonLabel} clinical appointment system</p>
+          <h1>Choose a calm, role-aware path into care coordination.</h1>
+          <p>
+            A soft prototype workspace for clinical queues, patient reassurance,
+            administrative oversight, route protection, and timed sessions.
+          </p>
+          <div className="login-safety-strip" aria-label="Prototype safeguards">
+            <span>Role-based routing</span>
+            <span>Timed sessions</span>
+            <span>Protected views</span>
           </div>
         </div>
-        <p className="eyebrow">{seasonLabel} full-site access at /login</p>
-        <h1>Sign in to the appointment planner</h1>
-        <p>
-          Pick a mock identity to demonstrate one login, role-based routing,
-          route protection and a timed session.
-        </p>
+
         <div className="login-demo-cards" aria-label="Mock login shortcuts">
           {DEMO_USERS.map((user) => (
             <article
               className={`login-demo-card ${credentials.email === user.email ? "active" : ""}`}
               key={user.userId}
             >
-              <div>
-                <strong>{ROLE_LABELS[user.role]}</strong>
-                <span>{user.name}</span>
-              </div>
+              <span className="login-demo-card-status">{ROLE_TILE_COPY[user.role].detail}</span>
+              <h2>{ROLE_TILE_COPY[user.role].title}</h2>
+              <p>{ROLE_TILE_COPY[user.role].description}</p>
               <dl>
                 <div>
                   <dt>Email</dt>
@@ -2485,13 +2524,18 @@ function LoginSplash({ seasonLabel, seasonImage, onLogin }) {
                   <dd>{user.passcode}</dd>
                 </div>
               </dl>
-              <button type="button" className="action-button" onClick={() => applyDemoUser(user)}>
-                Use this login
+              <button type="button" className="action-button" onClick={() => quickLogin(user)}>
+                Enter as {ROLE_LABELS[user.role]}
               </button>
             </article>
           ))}
         </div>
+
         <form className="login-form" onSubmit={submitLogin}>
+          <div className="login-form-header">
+            <span>Sign in</span>
+            <small>Use a role tile to enter directly, or edit demo credentials below.</small>
+          </div>
           <label>
             Demo role
             <select value={credentials.email} onChange={selectDemoUser}>
@@ -2538,13 +2582,16 @@ function LoginSplash({ seasonLabel, seasonImage, onLogin }) {
           </label>
           {error && <p className="login-error">{error}</p>}
           <button type="submit" className="btn btn-appointment">
-            Sign in
+            Enter selected role
           </button>
         </form>
         <div className="login-demo-note">
-          <strong>Where to log in</strong>
-          <span>Open /login, or sign out from the header to return to this splash login.</span>
-          <small>Prototype only: real deployments need server sessions, token validation and HTTP-only secure cookies.</small>
+          <strong>Medical device study note</strong>
+          <span>
+            This is a thoughtful prototype for discussing SaMD concepts, human
+            factors, access control, and safe clinical workflow support.
+          </span>
+          <small>Not a regulated medical device or production clinical system.</small>
         </div>
       </section>
     </main>
@@ -2585,8 +2632,91 @@ function PatientDemoHome({ session }) {
         </article>
         <article>
           <strong>Access level</strong>
-          <span>{ROLE_LABELS[session.role]} role with protected staff routes blocked.</span>
+          <span>{ROLE_LABELS[session.role]} role with protected staff routes disabled.</span>
         </article>
+      </div>
+    </section>
+  );
+}
+
+function ClinicianDemoHome({ session, routes }) {
+  return (
+    <section className="role-demo-home">
+      <div className="role-demo-intro">
+        <p className="eyebrow">Clinician demo</p>
+        <h1>Welcome, {session.name}</h1>
+        <p>
+          This clinician demo shows how care teams coordinate patients, handoffs,
+          and structured notes inside a calm workspace.
+        </p>
+        <p>
+          Live booking tools and real patient queues will appear here once
+          connected to clinical data sources.
+        </p>
+      </div>
+      <div className="patient-demo-grid">
+        <article>
+          <strong>Today's care queue</strong>
+          <span>Review items that need authorised clinical attention, handoff checks, or structured notes.</span>
+        </article>
+        <article>
+          <strong>Workflow focus</strong>
+          <span>Use Patient Care, Clinician Queue, and Appointments to understand how the clinical pathway fits together.</span>
+        </article>
+        <article>
+          <strong>Access level</strong>
+          <span>Clinician role with admin-only and patient-only routes disabled.</span>
+        </article>
+      </div>
+      <div className="role-demo-actions">
+        <Link to={routes.clinicianQueue} className="btn btn-appointment">
+          Open Clinician Queue
+        </Link>
+        <Link to={routes.concerns} className="action-button">
+          View Patient Care
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+function AdminDemoHome({ session, routes }) {
+  return (
+    <section className="role-demo-home">
+      <div className="role-demo-intro">
+        <p className="eyebrow">Admin demo</p>
+        <h1>Welcome, Admin Demo</h1>
+        <p>
+          This admin demo shows how service coordinators oversee tasks,
+          communications, and appointment movements across the clinic.
+        </p>
+        <p>
+          Administrative tools will appear here once connected to live
+          operational data.
+        </p>
+        <p>Admin role with clinician-only and patient-only routes disabled.</p>
+      </div>
+      <div className="patient-demo-grid">
+        <article>
+          <strong>Operational oversight</strong>
+          <span>Track tasks, communications, rota details, and appointment movements across the service.</span>
+        </article>
+        <article>
+          <strong>Coordination view</strong>
+          <span>Use Admin, Clinicians, Settings, and Appointments to understand how service flow is managed.</span>
+        </article>
+        <article>
+          <strong>Access level</strong>
+          <span>Admin-only oversight routes are available; clinician-only and patient-only spaces remain protected.</span>
+        </article>
+      </div>
+      <div className="role-demo-actions">
+        <Link to={routes.admin} className="btn btn-appointment">
+          Admin Tools
+        </Link>
+        <Link to={routes.bookingBoard} className="action-button">
+          View Appointments
+        </Link>
       </div>
     </section>
   );

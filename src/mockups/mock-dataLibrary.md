@@ -1,4 +1,4 @@
-# SereneCare Sync — Mock Data Library
+# Lumen Appointments — Mock Data Library
 A complete set of fictional, safe mock data for UI design, testing, and documentation.
 
 ---
@@ -75,7 +75,7 @@ A complete set of fictional, safe mock data for UI design, testing, and document
 
 ---
 
-# 6. Seasonal Colour Palettes (SereneCare Sync)
+# 6. Seasonal Colour Palettes (Lumen Appointments)
 
 ## Core Seasonal Palette
 - **Lavender Mist** — `#C9C3E6` (Patients)

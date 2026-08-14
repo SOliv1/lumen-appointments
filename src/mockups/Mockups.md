@@ -1,11 +1,11 @@
 # Clinician ID Mockups
 
-This file provides example identifiers used in SereneCare Sync for testing, UI design, and documentation.
+This file provides example identifiers used in Lumen Appointments for testing, UI design, and documentation.
 
 ---
 
 ## Internal System IDs (UUIDs)
-Used by SereneCare Sync for safe CRUD, linking clinicians to availability and appointments.
+Used by Lumen Appointments for safe CRUD, linking clinicians to availability and appointments.
 
 - `c8f3a9d2-4b1e-4a7b-9f2a-1d9e3b4c7f11`
 - `f2a7c1d9-8b3e-4f22-9a44-0c1e5d7b2a90`

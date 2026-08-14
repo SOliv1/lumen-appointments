@@ -3,7 +3,7 @@
 [![CodeQL](https://github.com/SOliv1/lumen-appointments/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/SOliv1/lumen-appointments/actions/workflows/codeql-analysis.yml)
 
  ## LUMEN APPOINTMENT PLANNER 
- ### VIEW THE LIVE MODEL DEMO [HERE](https://serene-care-sync.onrender.com)
+ ### VIEW THE LIVE MODEL DEMO [HERE](https://lumen-appointments.onrender.com)
 
 
 
@@ -43,7 +43,7 @@ In a live platform, the **mock model gets switched off** or moved behind a clear
 
  ## Mock prototype for demonstration, but create a clean live mode for real use.**
 
-> SereneCareSync
+> Lumen Appointments
 > is a previous PROTOTYPE and is a “show and learn” environment.  
 > The live version is the professional working platform.
 
@@ -52,7 +52,7 @@ In a live platform, the **mock model gets switched off** or moved behind a clear
 > 
 > THIS IS A BASIC TEMPLATE of an appointment planner 
 > NOT to be confused with LUMEN APPOINTMENT PLANNER:
-> [Live Preview](https://serene-care-synchronicity.onrender.com)
+> [Live Preview](https://lumen-appointments.onrender.com)
 
 Creating a calmer, smarter and more compassionate healthcare journey by connecting patients, clinicians and healthcare services through intelligent coordination and communication.”
 

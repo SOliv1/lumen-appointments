@@ -1,6 +1,6 @@
 # Appointment Safety Mockup
 
-Serene-Care-Sync should not simply store appointments. It should help busy medical admin staff create appointments safely, with enough context to prevent avoidable mistakes, short-notice confusion, missed communications and wasted clinical time.
+Lumen Appointments should not simply store appointments. It should help busy medical admin staff create appointments safely, with enough context to prevent avoidable mistakes, short-notice confusion, missed communications and wasted clinical time.
 
 ## Product Intent
 

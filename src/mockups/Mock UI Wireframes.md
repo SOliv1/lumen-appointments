@@ -1,9 +1,9 @@
-# Serene-Care-Sync UI Wireframes (ASCII)
+# Lumen Appointments UI Wireframes (ASCII)
 
 ## Shared Layout
 +----------------------------------------------------------+
 | Seasonal care studio                                     |
-| SereneCare Sync                                          |
+| Lumen Appointments                                       |
 | Calm seasonal workspace hero                             |
 +----------------------------------------------------------+
 | Patients | Clinicians | Availability | Appointments      |

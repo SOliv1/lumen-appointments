@@ -30,7 +30,7 @@ A security/authentication provider
 > and training prototype**. Its job is to > help a healthcare administrator 
 > understand:
 
-This model View Live Demo [Here](https://serene-care-synchronicity.onrender.com/)
+This model View Live Demo [Here](https://lumen-appointments.onrender.com/)
 
  
 
@@ -74,13 +74,13 @@ The live version is the professional working platform.
 > "We are not building software.
 > We are building confidence, clarity and continuity for people at moments when they most need reassurance."
 >
-[Live Preview](https://serene-care-synchronicity.onrender.com/availability)
+[Live Preview](https://lumen-appointments.onrender.com/availability)
 
 Creating a calmer, smarter and more compassionate healthcare journey by connecting patients, clinicians and healthcare services through intelligent coordination and communication.”
 
 A calm, structured care-coordination workspace where staff, patients, clinicians and schedules stay synced.
 
-Patients and NHS staff can experience uncertainty, wasted time and interrupted care when appointments, availability, cancellations, communications and follow-up actions are managed as separate administrative events. SereneCare Sync aims to coordinate them as one continuous, calm and recoverable patient journey.
+Patients and NHS staff can experience uncertainty, wasted time and interrupted care when appointments, availability, cancellations, communications and follow-up actions are managed as separate administrative events. Lumen Appointments aims to coordinate them as one continuous, calm and recoverable patient journey.
 
 >And the blessing it seeks to bring is:
 >Every patient should know what is happening, what happens next and >what actioni if any is required, while NHS staff are supported by >clear workflows that reduce duplication, unused capacity and >avoidable administrative pressure.
