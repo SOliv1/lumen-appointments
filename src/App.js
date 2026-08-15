@@ -2432,25 +2432,6 @@ function LoginSplash({ seasonLabel, seasonImage, onLogin }) {
   });
   const [error, setError] = useState("");
 
-  const updateCredentials = (event) => {
-    setCredentials({ ...credentials, [event.target.name]: event.target.value });
-    setError("");
-  };
-
-  const applyDemoUser = (selectedUser) => {
-    setCredentials({
-      email: selectedUser.email,
-      password: selectedUser.password,
-      passcode: selectedUser.passcode,
-    });
-    setError("");
-  };
-
-  const selectDemoUser = (event) => {
-    const selectedUser = DEMO_USERS.find((user) => user.email === event.target.value) || DEFAULT_DEMO_USER;
-    applyDemoUser(selectedUser);
-  };
-
   const quickLogin = (selectedUser) => {
     const selectedCredentials = {
       email: selectedUser.email,
@@ -2463,56 +2444,43 @@ function LoginSplash({ seasonLabel, seasonImage, onLogin }) {
     setError(loginError);
   };
 
-  const submitLogin = (event) => {
-    event.preventDefault();
-    const loginError = onLogin(credentials);
-    setError(loginError);
-  };
-
   return (
     <main className="login-splash">
-      <img
-        src={seasonImage}
-        alt={`${seasonLabel} Lumen Appointments splash`}
-        className="login-splash-image"
-      />
-      <div className="login-splash-overlay" />
       <section className="login-panel" aria-label="Lumen Appointments sign in">
         <div className="login-intro">
-          <div className="login-brand">
-            <div className="lumen-mark" aria-hidden="true">
-              <span />
-            </div>
-            <div className="lumen-wordmark">
-              <strong>Lumen</strong>
-              <span>Appointments</span>
-            </div>
-          </div>
-          <div className="login-season-row">
-            <p className="eyebrow">Seasonal clinical appointment system</p>
-            <span>{seasonLabel}</span>
-          </div>
-          <h1>Choose a calm, role-aware path into care coordination.</h1>
+          <p className="login-kicker">Lumen Appointments</p>
+          <h1>Seasonal Clinical Appointment System {seasonLabel}</h1>
+          <p className="login-lede">Enter your role path into coordination.</p>
           <p>
             A soft prototype workspace for clinical queues, patient reassurance,
             administrative oversight, route protection, and timed sessions.
           </p>
-          <div className="login-safety-strip" aria-label="Prototype safeguards">
-            <span>Role-based routing</span>
-            <span>Timed sessions</span>
-            <span>Protected views</span>
-          </div>
         </div>
 
         <div className="login-demo-cards" aria-label="Mock login shortcuts">
           {DEMO_USERS.map((user) => (
             <article
-              className={`login-demo-card ${credentials.email === user.email ? "active" : ""}`}
+              className={`login-demo-card login-demo-card-${user.role} ${
+                credentials.email === user.email ? "active" : ""
+              }`}
               key={user.userId}
             >
-              <span className="login-demo-card-status">{ROLE_TILE_COPY[user.role].detail}</span>
-              <h2>{ROLE_TILE_COPY[user.role].title}</h2>
+              <div className="login-demo-card-header">
+                <div>
+                  <span className="login-demo-card-status">
+                    {ROLE_TILE_COPY[user.role].detail}
+                  </span>
+                  <h2>{ROLE_TILE_COPY[user.role].title}</h2>
+                </div>
+                <span className="login-demo-card-pill">
+                  {user.role === "clinician" && "Clinical queue"}
+                  {user.role === "patient" && "Reassurance"}
+                  {user.role === "admin" && "Oversight"}
+                </span>
+              </div>
+
               <p>{ROLE_TILE_COPY[user.role].description}</p>
+
               <dl>
                 <div>
                   <dt>Email</dt>
@@ -2527,74 +2495,85 @@ function LoginSplash({ seasonLabel, seasonImage, onLogin }) {
                   <dd>{user.passcode}</dd>
                 </div>
               </dl>
-              <button type="button" className="action-button" onClick={() => quickLogin(user)}>
+
+              <button type="button" className="login-demo-button" onClick={() => quickLogin(user)}>
                 Enter as {ROLE_LABELS[user.role]}
               </button>
             </article>
           ))}
+
+          {error && <p className="login-error">{error}</p>}
         </div>
 
-        <form className="login-form" onSubmit={submitLogin}>
-          <div className="login-form-header">
-            <span>Sign in</span>
-            <small>Use a role tile to enter directly, or edit demo credentials below.</small>
+        <p className="login-splash-copyright">© Lumen Appointments 2026</p>
+
+        <div className="login-season-panel" aria-label="Seasonal appointment overview">
+          <figure className="login-appointment-hero">
+            <img src={seasonImage} alt={`${seasonLabel} appointment workspace`} />
+            <figcaption>
+              <span>{seasonLabel} access</span>
+              <strong>Appointments held in one calm view.</strong>
+            </figcaption>
+          </figure>
+
+          <div className="login-image-mosaic">
+            <figure className="login-visual-card login-visual-card-board">
+              <img src="/lumen-appointments-planner-visual.png" alt="Lumen appointment planner visual" />
+              <figcaption>
+                <span>Planner</span>
+                <strong>Routes, slots, and reassurance moving together.</strong>
+              </figcaption>
+            </figure>
+
+            <figure className="login-visual-card login-visual-card-lumen">
+              <img src="/lumen-appointments-coordination-visual.png" alt="Lumen appointments coordination visual" />
+              <figcaption>
+                <span>Lumen</span>
+                <strong>A focused entry point for each role.</strong>
+              </figcaption>
+            </figure>
           </div>
-          <label>
-            Demo role
-            <select value={credentials.email} onChange={selectDemoUser}>
-              {DEMO_USERS.map((user) => (
-                <option key={user.userId} value={user.email}>
-                  {ROLE_LABELS[user.role]} - {user.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Email
-            <input
-              name="email"
-              type="email"
-              value={credentials.email}
-              onChange={updateCredentials}
-              autoComplete="username"
-              required
-            />
-          </label>
-          <label>
-            Password
-            <input
-              name="password"
-              type="password"
-              value={credentials.password}
-              onChange={updateCredentials}
-              autoComplete="current-password"
-              required
-            />
-          </label>
-          <label>
-            Security passcode
-            <input
-              name="passcode"
-              type="text"
-              inputMode="numeric"
-              value={credentials.passcode}
-              onChange={updateCredentials}
-              autoComplete="one-time-code"
-              required
-            />
-          </label>
-          {error && <p className="login-error">{error}</p>}
-          <button type="submit" className="btn btn-appointment">
-            Enter selected role
-          </button>
-        </form>
-        <div className="login-demo-note">
-          <strong>Medical device study note</strong>
-          <span>
-            This is a thoughtful prototype for discussing SaMD concepts, human
-            factors, access control, and safe clinical workflow support.
-          </span>
-          <small>Not a regulated medical device or production clinical system.</small>
+
+          <div className="login-pathway-visual">
+            <div className="login-pathway-header">
+              <span>Today</span>
+              <strong>Clinical coordination</strong>
+            </div>
+            <ol>
+              <li>
+                <span>09:20</span>
+                <strong>Queue review</strong>
+              </li>
+              <li>
+                <span>10:45</span>
+                <strong>Patient update</strong>
+              </li>
+              <li>
+                <span>13:10</span>
+                <strong>Admin handoff</strong>
+              </li>
+            </ol>
+          </div>
+
+          <div className="login-admin-visual">
+            <div className="login-pathway-header">
+              <span>Oversight</span>
+              <strong>Service flow remains visible.</strong>
+            </div>
+            <div className="login-admin-grid" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
+            <div className="login-admin-signals" aria-hidden="true">
+              <span>Tasks aligned</span>
+              <span>Handoffs tracked</span>
+              <span>Sessions protected</span>
+            </div>
+          </div>
         </div>
       </section>
     </main>
