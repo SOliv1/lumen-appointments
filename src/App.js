@@ -6,6 +6,7 @@ import ConcernList from "./concern/ConcernList";
 import NewConcern from "./concern/NewConcern";
 import ClinicianQueue from "./clinician/ClinicianQueue";
 import AdminDashboard from "./admin/AdminDashboard";
+import NoteTimeline from "./notes/NoteTimeline";
 import JourneyStart from "./JourneyStart";
 import { buildPatientScript } from "./concern/patientScript";
 import initialAppointments from "./mockups/appointments.json";
@@ -27,6 +28,7 @@ const ROUTES = {
   AVAILABILITY: "/availability",
   SETTINGS: "/settings",
   APPOINTMENTS: "/appointments",
+  NOTES: "/notes",
   JOURNEY_START: "/journey/start",
   NEW_CONCERN: "/concern/new",
   CONCERNS: "/concerns",
@@ -44,6 +46,7 @@ const getModeRoutes = (mode) => {
     admin: `${base}/admin`,
     bookingBoard: `${base}/booking-board`,
     clinicianQueue: `${base}/clinician-queue`,
+    notes: `${base}/notes`,
     settings: `${base}/settings`,
     newConcern: `${base}/concern/new`,
     concerns: `${base}/concerns`,
@@ -1700,6 +1703,11 @@ function App() {
             Appointments
           </NavLink>
         )}
+        {canViewClinical && (
+          <NavLink to={activeModeRoutes.notes} activeClassName="active">
+            Notes
+          </NavLink>
+        )}
         {canViewAdmin && (
           <NavLink to={activeModeRoutes.clinicians} activeClassName="active">
             Clinicians
@@ -1863,6 +1871,21 @@ function App() {
               </ModeWorkspace>
             </RoleGate>
           </Route>
+          <Route path={getModeRoutes("live").notes}>
+            <RoleGate session={session} allowedRoles={["clinician", "admin"]}>
+              <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
+                <CoordinatedNotesPage
+                  mode="live"
+                  concerns={liveConcernListItems}
+                  appointments={liveAppointmentListItems}
+                  patientLookup={livePatientLookup}
+                  clinicianLookup={liveClinicianLookup}
+                  onAddConcernNote={(id, note) => addModeConcernNote("live", id, note)}
+                  onAddAppointmentNote={(id, note) => addModeAppointmentNote("live", id, note)}
+                />
+              </ModeWorkspace>
+            </RoleGate>
+          </Route>
           <Route path={getModeRoutes("live").settings}>
             <RoleGate session={session} allowedRoles={["admin"]}>
               <ModeWorkspace mode="live" pathwayStatuses={livePathwayStatuses}>
@@ -1993,6 +2016,21 @@ function App() {
               </ModeWorkspace>
             </RoleGate>
           </Route>
+          <Route path={getModeRoutes("practice").notes}>
+            <RoleGate session={session} allowedRoles={["clinician", "admin"]}>
+              <ModeWorkspace mode="practice">
+                <CoordinatedNotesPage
+                  mode="practice"
+                  concerns={concernListItems}
+                  appointments={appointmentListItems}
+                  patientLookup={patientLookup}
+                  clinicianLookup={clinicianLookup}
+                  onAddConcernNote={(id, note) => addModeConcernNote("practice", id, note)}
+                  onAddAppointmentNote={(id, note) => addModeAppointmentNote("practice", id, note)}
+                />
+              </ModeWorkspace>
+            </RoleGate>
+          </Route>
           <Route path={getModeRoutes("practice").settings}>
             <RoleGate session={session} allowedRoles={["admin"]}>
               <ModeWorkspace mode="practice">
@@ -2072,6 +2110,9 @@ function App() {
           </Route>
           <Route path={ROUTES.APPOINTMENTS}>
             <Redirect to={getModeRoutes("live").bookingBoard} />
+          </Route>
+          <Route path={ROUTES.NOTES}>
+            <Redirect to={getModeRoutes("live").notes} />
           </Route>
         </Switch>
       </main>
@@ -2350,6 +2391,137 @@ function LiveBookingDashboard({ patients, clinicians, appointments, concerns, da
       </section>
     </section>
   );
+}
+
+function CoordinatedNotesPage({
+  mode,
+  concerns = [],
+  appointments = [],
+  patientLookup = {},
+  clinicianLookup = {},
+  onAddConcernNote,
+  onAddAppointmentNote,
+}) {
+  const noteRecords = useMemo(() => {
+    const concernRecords = concerns.map((concern) => ({
+      id: concern.id,
+      kind: "Concern",
+      title: concern.patientName || patientLookup[concern.patientId]?.name || concern.patientId || "Unknown patient",
+      summary: concern.description || "Patient care concern",
+      status: concern.status || "Status not recorded",
+      route: concern.triage?.route || "Route not assigned",
+      registeredAt: concern.patientRegisteredAt,
+      notes: concern.notes || buildInitialConcernNotes(concern),
+      defaultType: "Clinical",
+      onAddNote: (note) => onAddConcernNote?.(concern.id, note),
+    }));
+
+    const appointmentRecords = appointments.map((appointment) => ({
+      id: appointment.id,
+      kind: "Appointment",
+      title:
+        appointment.patientName ||
+        patientLookup[appointment.patientId]?.name ||
+        appointment.patientId ||
+        "Unknown patient",
+      summary: appointment.reason || "Appointment record",
+      status: appointment.status || "Booked",
+      route:
+        clinicianLookup[appointment.clinicianId]?.name ||
+        appointment.clinicianId ||
+        "Clinician not assigned",
+      registeredAt: appointment.patientRegisteredAt || appointment.createdAt || appointment.date,
+      notes: appointment.notes || buildInitialAppointmentNotes(appointment),
+      defaultType: "Administrative",
+      onAddNote: (note) => onAddAppointmentNote?.(appointment.id, note),
+    }));
+
+    return [...concernRecords, ...appointmentRecords].sort((first, second) => {
+      const firstLatest = getLatestNoteTime(first.notes) || first.registeredAt || "";
+      const secondLatest = getLatestNoteTime(second.notes) || second.registeredAt || "";
+      return secondLatest.localeCompare(firstLatest);
+    });
+  }, [appointments, clinicianLookup, concerns, onAddAppointmentNote, onAddConcernNote, patientLookup]);
+
+  const totalNotes = noteRecords.reduce((total, record) => total + record.notes.length, 0);
+
+  return (
+    <section className="coordinated-notes-page">
+      <div className="coordinated-notes-header">
+        <div>
+          <p className="command-kicker">
+            {mode === "practice" ? "Practice coordinated notes" : "Live coordinated notes"}
+          </p>
+          <h1>Coordinated Notes</h1>
+          <p>
+            One structured note space for clinical review, care navigation,
+            communication updates, admin handoffs, and internal reminders.
+          </p>
+        </div>
+        <div className="coordinated-notes-summary" aria-label="Notes summary">
+          <span>{noteRecords.length} records</span>
+          <strong>{totalNotes} notes</strong>
+        </div>
+      </div>
+
+      <div className="coordinated-note-type-strip" aria-label="Structured note types">
+        <span>Administrative</span>
+        <span>Clinical</span>
+        <span>Communication</span>
+        <span>Patient concern</span>
+        <span>Internal reminder</span>
+      </div>
+
+      {noteRecords.length ? (
+        <div className="coordinated-notes-list">
+          {noteRecords.map((record) => (
+            <article className="coordinated-note-record" key={`${record.kind}-${record.id}`}>
+              <div className="coordinated-note-record-header">
+                <div>
+                  <span className="coordinated-note-kind">{record.kind}</span>
+                  <h2>{record.title}</h2>
+                  <p>{record.summary}</p>
+                </div>
+                <dl>
+                  <div>
+                    <dt>Status</dt>
+                    <dd>{record.status}</dd>
+                  </div>
+                  <div>
+                    <dt>Route</dt>
+                    <dd>{record.route}</dd>
+                  </div>
+                  <div>
+                    <dt>Registered</dt>
+                    <dd>{formatPatientStoryDate(record.registeredAt)}</dd>
+                  </div>
+                </dl>
+              </div>
+
+              <NoteTimeline
+                notes={record.notes}
+                title="Shared structured notes"
+                defaultType={record.defaultType}
+                defaultAuthor="Coordinated Care Team"
+                onAddNote={record.onAddNote}
+              />
+            </article>
+          ))}
+        </div>
+      ) : (
+        <p className="empty-state">No coordinated note records are available yet.</p>
+      )}
+    </section>
+  );
+}
+
+function getLatestNoteTime(notes = []) {
+  const noteTimes = notes
+    .map((note) => note.createdAt || "")
+    .filter(Boolean)
+    .sort();
+
+  return noteTimes[noteTimes.length - 1];
 }
 
 function ModeStat({ label, value, detail }) {
@@ -2664,6 +2836,9 @@ function ClinicianDemoHome({ session, routes }) {
         <Link to={routes.concerns} className="action-button">
           View Patient Care
         </Link>
+        <Link to={routes.notes} className="action-button">
+          Open Notes
+        </Link>
       </div>
     </section>
   );
@@ -2705,6 +2880,9 @@ function AdminDemoHome({ session, routes }) {
         </Link>
         <Link to={routes.bookingBoard} className="action-button">
           View Appointments
+        </Link>
+        <Link to={routes.notes} className="action-button">
+          Open Notes
         </Link>
       </div>
     </section>
